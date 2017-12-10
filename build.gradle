@@ -1,0 +1,45 @@
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+group = 'com.github.millij'
+version = '0.1.0-SNAPSHOT'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+
+dependencies {
+
+    // Main compile
+    // ----------------------------------------------------------------------------------
+
+    // Slf4j
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.12'
+
+    // Apache Commons
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
+    compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.3'
+
+    // Apache POI
+    compile group: 'org.apache.poi', name: 'poi-ooxml', version: '3.14'
+
+
+    // Test compile
+    // ----------------------------------------------------------------------------------
+
+    testCompile group: "org.slf4j", name: "slf4j-log4j12", version: "1.7.12"
+
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+
+}
+
+test {
+    systemProperties 'property': 'value'
+}
+
