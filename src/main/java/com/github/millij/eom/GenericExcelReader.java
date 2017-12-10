@@ -1,4 +1,4 @@
-package com.eom;
+package com.github.millij.eom;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,8 +15,6 @@ import java.util.Map;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
@@ -27,17 +25,19 @@ import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
 import org.apache.poi.xssf.model.StylesTable;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-import com.eom.annotation.ExcelColumn;
-import com.eom.handler.ExcelSheetContentsHandler;
+import com.github.millij.eom.spi.annotation.ExcelColumn;
+import com.github.millij.eom.spi.handler.ExcelSheetContentsHandler;
 
 public class GenericExcelReader<T extends IExcelEntity> {
 
-	private static final Log logger = LogFactory.getLog(GenericExcelReader.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(GenericExcelReader.class);
 
 	public final static String EXCEL_TYPE_XLS = "xls";
 	public final static String EXCEL_TYPE_XLSX = "xlsx";
@@ -88,7 +88,7 @@ public class GenericExcelReader<T extends IExcelEntity> {
 		// Get the workbook instance
 		Workbook workbook = getWorkBook();
 		int noOfSheets = workbook.getNumberOfSheets();
-		logger.debug("Total no of Sheets found : " + noOfSheets);
+		LOGGER.debug("Total no of Sheets found : " + noOfSheets);
 
 		// Iterate over all Sheets
 		for (int i = 0; i < noOfSheets; i++) {
@@ -132,13 +132,13 @@ public class GenericExcelReader<T extends IExcelEntity> {
 			return sheetContentsHandler.getRowsAsObjects();
 
 		} catch (IOException e) {
-			logger.error(e.getMessage());
+			LOGGER.error(e.getMessage());
 		} catch (SAXException e) {
-			logger.error(e.getMessage());
+			LOGGER.error(e.getMessage());
 		} catch (OpenXML4JException e) {
-			logger.error(e.getMessage());
+			LOGGER.error(e.getMessage());
 		} catch (ParserConfigurationException e) {
-			logger.error(e.getMessage());
+			LOGGER.error(e.getMessage());
 		}
 
 		return null;

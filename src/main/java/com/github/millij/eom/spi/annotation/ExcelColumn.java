@@ -1,4 +1,4 @@
-package com.eom.annotation;
+package com.github.millij.eom.spi.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

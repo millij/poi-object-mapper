@@ -1,4 +1,4 @@
-package com.eom;
+package com.github.millij.eom;
 
 /**
  * A marker interface for excel entities.

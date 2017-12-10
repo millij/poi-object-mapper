@@ -1,4 +1,4 @@
-package com.eom.handler;
+package com.github.millij.eom.spi.handler;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -7,16 +7,17 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler.SheetContentsHandler;
+import org.apache.poi.xssf.usermodel.XSSFComment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.eom.GenericExcelReader;
-import com.eom.IExcelEntity;
+import com.github.millij.eom.GenericExcelReader;
+import com.github.millij.eom.IExcelEntity;
 
 public class ExcelSheetContentsHandler<T extends IExcelEntity> implements SheetContentsHandler {
 
-	private static final Log logger = LogFactory.getLog(ExcelSheetContentsHandler.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ExcelSheetContentsHandler.class);
 
 	private Class<T> entityType;
 	private int noOfRowsToSkip = 0;
@@ -90,26 +91,9 @@ public class ExcelSheetContentsHandler<T extends IExcelEntity> implements SheetC
 		// Create a new instance of entity for each row
 		currentRowEntity = this.getEntityNewInstance();
 	}
-
-	@Override
-	public void cell(String cellReference, String formattedValue) {
-		if (this.currentRow < noOfRowsToSkip)
-			return;
-
-		if (formattedValue == null || formattedValue.length() == 0)
-			return;
-
-		// Handle the Header Row
-		if (this.verifyHeader && this.headerRow == this.currentRow) {
-			this.saveHeaderCellValue(cellReference, formattedValue);
-		} else {
-			this.saveRowCellValue(cellReference, formattedValue);
-		}
-		
-	}
 	
 	@Override
-	public void endRow() {
+	public void endRow(int rowNum) {
 		if (this.headerRow == this.currentRow && verifyHeader)
 			this.verifySheetHeader();
 
@@ -126,6 +110,22 @@ public class ExcelSheetContentsHandler<T extends IExcelEntity> implements SheetC
 		currentRowEntity = null;
 	}
 
+    @Override
+    public void cell(String cellReference, String formattedValue, XSSFComment comment) {
+        if (this.currentRow < noOfRowsToSkip)
+            return;
+
+        if (formattedValue == null || formattedValue.length() == 0)
+            return;
+
+        // Handle the Header Row
+        if (this.verifyHeader && this.headerRow == this.currentRow) {
+            this.saveHeaderCellValue(cellReference, formattedValue);
+        } else {
+            this.saveRowCellValue(cellReference, formattedValue);
+        }
+        
+    }
 
 	@Override
 	public void headerFooter(String text, boolean isHeader, String tagName) {
@@ -139,9 +139,9 @@ public class ExcelSheetContentsHandler<T extends IExcelEntity> implements SheetC
 		try {
 			return entityType.newInstance();
 		} catch (InstantiationException e) {
-			logger.error(e.getMessage());
+			LOGGER.error(e.getMessage());
 		} catch (IllegalAccessException e) {
-			logger.error(e.getMessage());
+			LOGGER.error(e.getMessage());
 		}
 		
 		return null;
@@ -169,17 +169,17 @@ public class ExcelSheetContentsHandler<T extends IExcelEntity> implements SheetC
 		
 		// Sanity Checks
 		if(this.currentRowEntity == null) {
-			logger.warn("How come the row entity is NULL ??? Verify once");
+			LOGGER.warn("How come the row entity is NULL ??? Verify once");
 			return;
 		}
 		
 		if (cellRef == null || cellRef.length() == 0) {
-			logger.error("Cell reference is null or empty");
+			LOGGER.error("Cell reference is null or empty");
 			return;
 		}
 		
 		if (cellValue == null || cellValue.length() == 0) {
-			logger.warn("Cell's formatted value is null or empty");
+			LOGGER.warn("Cell's formatted value is null or empty");
 			return;
 		}
 		
@@ -192,7 +192,7 @@ public class ExcelSheetContentsHandler<T extends IExcelEntity> implements SheetC
 		
 		String entityPropName = this.entityPropertyMapping.get(cellColName);
 		if(entityPropName == null || entityPropName.isEmpty()) {
-			logger.debug("No mathching property is found / is mapped for column with name :" + cellColName);
+			LOGGER.debug("No mathching property is found / is mapped for column with name :" + cellColName);
 			return;
 		}
 		
