@@ -3,15 +3,17 @@ package com.github.millij.eom;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.millij.eom.spi.IExcelEntity;
+import com.github.millij.eom.spi.IExcelBean;
 import com.github.millij.eom.spi.annotation.ExcelColumn;
 
 
@@ -23,13 +25,11 @@ public class ExcelUtil {
         // Utility Class
     }
 
-
     // Labels
     // ------------------------------------------------------------------------
 
     public final static String EXTN_XLS = "xls";
     public final static String EXTN_XLSX = "xlsx";
-
 
 
     // Utilities
@@ -54,7 +54,7 @@ public class ExcelUtil {
     }
 
 
-    public static Map<String, String> getColumnToPropertyMap(Class<? extends IExcelEntity> entityType) {
+    public static Map<String, String> getColumnToPropertyMap(Class<? extends IExcelBean> entityType) {
         // Sanity checks
         if (entityType == null) {
             throw new IllegalArgumentException("getColumnToPropertyMap :: Invalid entity type - " + entityType);
@@ -92,6 +92,28 @@ public class ExcelUtil {
         // Splits the Cell name and returns the column reference
         String cellColRef = cellRef.split("[0-9]*$")[0];
         return cellColRef;
+    }
+
+
+    public static List<String> getColumnHeaders(Class<? extends IExcelBean> entityType) {
+        // Sanity checks
+        if (entityType == null) {
+            throw new IllegalArgumentException("getColumnHeaders :: entity class type should not be null");
+        }
+
+        // Headers list
+        final List<String> headers = new ArrayList<String>();
+        for (Field field : entityType.getDeclaredFields()) {
+            if (!field.isAnnotationPresent(ExcelColumn.class)) {
+                continue;
+            }
+
+            ExcelColumn column = field.getAnnotation(ExcelColumn.class);
+            String header = column.value();
+            headers.add(header);
+        }
+
+        return headers;
     }
 
 }

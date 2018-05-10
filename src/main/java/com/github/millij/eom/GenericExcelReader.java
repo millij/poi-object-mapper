@@ -26,7 +26,7 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 
-import com.github.millij.eom.spi.IExcelEntity;
+import com.github.millij.eom.spi.IExcelBean;
 import com.github.millij.eom.spi.handler.ExcelSheetContentsHandler;
 
 
@@ -77,22 +77,27 @@ public class GenericExcelReader {
     // Methods
     // ------------------------------------------------------------------------
 
-    public <T extends IExcelEntity> List<T> read(Class<T> entityType) {
+    public <EB extends IExcelBean> List<EB> read(Class<EB> beanType) {
         // Get the workbook instance
         Workbook workbook = this.getWorkBook(this.file, this.fileType);
         int noOfSheets = workbook.getNumberOfSheets();
         LOGGER.debug("Total no of Sheets found : " + noOfSheets);
 
         // Iterate over all Sheets
-        List<T> entityObjects = new ArrayList<T>();
+        final List<EB> beans = new ArrayList<EB>();
         for (int i = 0; i < noOfSheets; i++) {
-            entityObjects.addAll(this.read(i, entityType));
+            beans.addAll(this.read(i, beanType));
         }
 
-        return entityObjects;
+        return beans;
     }
 
-    public <T extends IExcelEntity> List<T> read(int sheetNo, Class<T> entityClz) {
+    public <EB extends IExcelBean> List<EB> read(int sheetNo, Class<EB> beanClz) {
+        // Sanity checks
+        if (beanClz == null) {
+            throw new IllegalArgumentException("GenericExcelWriter :: IExcelBean class type should not be null");
+        }
+
         try {
             final OPCPackage opcPkg = OPCPackage.open(this.file);
 
@@ -102,7 +107,7 @@ public class GenericExcelReader {
 
             // Content Handler
             ReadOnlySharedStringsTable ssTable = new ReadOnlySharedStringsTable(opcPkg);
-            ExcelSheetContentsHandler<T> sheetContentsHandler = new ExcelSheetContentsHandler<T>(entityClz);
+            ExcelSheetContentsHandler<EB> sheetContentsHandler = new ExcelSheetContentsHandler<EB>(beanClz);
             ContentHandler handler = new XSSFSheetXMLHandler(styles, ssTable, sheetContentsHandler, true);
 
             // XML Reader
@@ -125,7 +130,7 @@ public class GenericExcelReader {
             return sheetContentsHandler.getRowsAsObjects();
         } catch (Exception ex) {
             String errMsg =
-                    String.format("Error reading sheet %d, entity %s : %s", sheetNo, entityClz, ex.getMessage());
+                    String.format("Error reading sheet %d, ExcelBean %s : %s", sheetNo, beanClz, ex.getMessage());
             LOGGER.error(errMsg, ex);
         }
 

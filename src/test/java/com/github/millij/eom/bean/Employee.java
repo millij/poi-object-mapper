@@ -1,11 +1,12 @@
 package com.github.millij.eom.bean;
 
-import com.github.millij.eom.spi.IExcelEntity;
+import com.github.millij.eom.spi.IExcelBean;
 import com.github.millij.eom.spi.annotation.ExcelColumn;
+import com.github.millij.eom.spi.annotation.ExcelSheet;
 
 
-
-public class Employee implements IExcelEntity {
+@ExcelSheet("Employees")
+public class Employee implements IExcelBean {
 
     @ExcelColumn("ID")
     private String id;
@@ -24,6 +25,24 @@ public class Employee implements IExcelEntity {
 
     @ExcelColumn("Address")
     private String address;
+
+
+    // Constructors
+    // ------------------------------------------------------------------------
+
+    public Employee() {
+        // Default
+    }
+
+    public Employee(String id, String name, Integer age, String gender, Double height) {
+        super();
+
+        this.id = id;
+        this.name = name;
+        this.age = age;
+        this.gender = gender;
+        this.height = height;
+    }
 
 
     // Getters and Setters

@@ -13,10 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.millij.eom.ExcelUtil;
-import com.github.millij.eom.spi.IExcelEntity;
+import com.github.millij.eom.spi.IExcelBean;
 
 
-public class ExcelSheetContentsHandler<T extends IExcelEntity> implements SheetContentsHandler {
+public class ExcelSheetContentsHandler<T extends IExcelBean> implements SheetContentsHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExcelSheetContentsHandler.class);
 
