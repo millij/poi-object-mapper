@@ -1,5 +1,6 @@
 package com.github.millij.eom;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ public class GenericExcelWriterTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GenericExcelWriterTest.class);
 
+    private final String _path_test_output = "test-cases/output/";
 
     // Setup
     // ------------------------------------------------------------------------
@@ -27,6 +29,10 @@ public class GenericExcelWriterTest {
     @Before
     public void setup() throws ParseException {
         // prepare
+        File output_dir = new File(_path_test_output);
+        if (!output_dir.exists()) {
+            output_dir.mkdirs();
+        }
     }
 
     @After
@@ -40,7 +46,7 @@ public class GenericExcelWriterTest {
 
     @Test
     public void test_write_xlsx_single_sheet() throws IOException {
-        final String filepath_output_file = "test_write_xlsx_single_sheet.xlsx";
+        final String filepath_output_file = _path_test_output.concat("single_sheet.xlsx");
 
         // Excel Writer
         LOGGER.info("test_write_xlsx_single_sheet :: Writing to file - {}", filepath_output_file);
@@ -59,7 +65,7 @@ public class GenericExcelWriterTest {
 
     @Test
     public void test_write_xlsx_single_sheet_custom_headers() throws IOException {
-        final String filepath_output_file = "test_write_xlsx_single_sheet_custom_headers.xlsx";
+        final String filepath_output_file = _path_test_output.concat("single_sheet_custom_headers.xlsx");
 
         // Excel Writer
         LOGGER.info("test_write_xlsx_single_sheet :: Writing to file - {}", filepath_output_file);
@@ -83,7 +89,7 @@ public class GenericExcelWriterTest {
 
     @Test
     public void test_write_xlsx_multiple_sheets() throws IOException {
-        final String filepath_output_file = "test_write_xlsx_single_sheet.xlsx";
+        final String filepath_output_file = _path_test_output.concat("multiple_sheets.xlsx");
 
         // Excel Writer
         LOGGER.info("test_write_xlsx_single_sheet :: Writing to file - {}", filepath_output_file);
