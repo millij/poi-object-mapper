@@ -1,14 +1,19 @@
 package com.github.millij.eom;
 
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,16 +59,16 @@ public class ExcelUtil {
     }
 
 
-    public static Map<String, String> getColumnToPropertyMap(Class<? extends IExcelBean> entityType) {
+    public static Map<String, String> getColumnToPropertyMap(Class<? extends IExcelBean> excelBeanType) {
         // Sanity checks
-        if (entityType == null) {
-            throw new IllegalArgumentException("getColumnToPropertyMap :: Invalid entity type - " + entityType);
+        if (excelBeanType == null) {
+            throw new IllegalArgumentException("getColumnToPropertyMap :: Invalid ExcelBean type - " + excelBeanType);
         }
 
         // Column to Property Mapping
         Map<String, String> mapping = new HashMap<String, String>();
 
-        Field[] fields = entityType.getDeclaredFields();
+        Field[] fields = excelBeanType.getDeclaredFields();
         if (fields == null || fields.length == 0) {
             return mapping;
         }
@@ -95,15 +100,15 @@ public class ExcelUtil {
     }
 
 
-    public static List<String> getColumnHeaders(Class<? extends IExcelBean> entityType) {
+    public static List<String> getColumnHeaders(Class<? extends IExcelBean> excelBeanType) {
         // Sanity checks
-        if (entityType == null) {
-            throw new IllegalArgumentException("getColumnHeaders :: entity class type should not be null");
+        if (excelBeanType == null) {
+            throw new IllegalArgumentException("getColumnHeaders :: ExcelBean class type should not be null");
         }
 
         // Headers list
         final List<String> headers = new ArrayList<String>();
-        for (Field field : entityType.getDeclaredFields()) {
+        for (Field field : excelBeanType.getDeclaredFields()) {
             if (!field.isAnnotationPresent(ExcelColumn.class)) {
                 continue;
             }
@@ -114,6 +119,41 @@ public class ExcelUtil {
         }
 
         return headers;
+    }
+
+
+    public static Map<String, String> asRowDataMap(IExcelBean beanObj, List<String> headers)
+            throws IllegalAccessException, InvocationTargetException, IntrospectionException {
+        // Sanity checks
+        if (beanObj == null || CollectionUtils.isEmpty(headers)) {
+            return new HashMap<>();
+        }
+
+
+        // RowData map
+        final Map<String, String> rowDataMap = new HashMap<String, String>();
+
+        for (Field f : beanObj.getClass().getDeclaredFields()) {
+            if (!f.isAnnotationPresent(ExcelColumn.class)) {
+                continue;
+            }
+
+            ExcelColumn excelColumn = f.getAnnotation(ExcelColumn.class);
+            String header = excelColumn.value();
+            if (!headers.contains(header)) {
+                continue;
+            }
+
+            PropertyDescriptor pd = new PropertyDescriptor(f.getName(), beanObj.getClass());
+            Method getterMtd = pd.getReadMethod();
+
+            Object value = getterMtd.invoke(beanObj);
+            String cellValue = value != null ? value.toString() : "";
+
+            rowDataMap.put(header, cellValue);
+        }
+
+        return rowDataMap;
     }
 
 }

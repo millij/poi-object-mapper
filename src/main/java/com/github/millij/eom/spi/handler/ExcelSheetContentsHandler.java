@@ -16,53 +16,53 @@ import com.github.millij.eom.ExcelUtil;
 import com.github.millij.eom.spi.IExcelBean;
 
 
-public class ExcelSheetContentsHandler<T extends IExcelBean> implements SheetContentsHandler {
+public class ExcelSheetContentsHandler<EB extends IExcelBean> implements SheetContentsHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExcelSheetContentsHandler.class);
 
-    private final Class<T> entityType;
+    private final Class<EB> excelBeanType;
     private final int noOfRowsToSkip;
 
     private final int headerRow;
     private final boolean verifyHeader;
 
-    private final Map<String, String> entityPropertyMapping;
+    private final Map<String, String> beanPropertyMapping;
 
     private final Map<String, String> headerCellMap;
-    private final List<T> rowObjList;
+    private final List<EB> rowObjList;
 
     private int currentRow = 0;
-    private T currentRowEntity;
+    private EB currentRowEntity;
 
 
     // Constructors
     // ------------------------------------------------------------------------
 
-    public ExcelSheetContentsHandler(Class<T> entityType) {
-        this(entityType, 0, 0, true);
+    public ExcelSheetContentsHandler(Class<EB> excelBeanType) {
+        this(excelBeanType, 0, 0, true);
     }
 
-    public ExcelSheetContentsHandler(Class<T> entityType, int noOfRowsToSkip) {
-        this(entityType, noOfRowsToSkip, 0, true);
+    public ExcelSheetContentsHandler(Class<EB> excelBeanType, int noOfRowsToSkip) {
+        this(excelBeanType, noOfRowsToSkip, 0, true);
     }
 
-    public ExcelSheetContentsHandler(Class<T> entityType, int noOfRowsToSkip, int headerRow, boolean verifyHeader) {
+    public ExcelSheetContentsHandler(Class<EB> excelBeanType, int noOfRowsToSkip, int headerRow, boolean verifyHeader) {
         super();
 
         // Sanity checks
-        if (entityType == null) {
+        if (excelBeanType == null) {
             throw new IllegalArgumentException("ExcelSheetContentsHandler :: Entity Class type is Null");
         }
 
-        this.entityType = entityType;
+        this.excelBeanType = excelBeanType;
         this.noOfRowsToSkip = noOfRowsToSkip;
 
         this.headerRow = headerRow;
         this.verifyHeader = verifyHeader;
 
-        this.entityPropertyMapping = ExcelUtil.getColumnToPropertyMap(entityType);
+        this.beanPropertyMapping = ExcelUtil.getColumnToPropertyMap(excelBeanType);
         this.headerCellMap = new HashMap<String, String>();
-        this.rowObjList = new ArrayList<T>();
+        this.rowObjList = new ArrayList<EB>();
     }
 
 
@@ -74,8 +74,8 @@ public class ExcelSheetContentsHandler<T extends IExcelBean> implements SheetCon
      * 
      * @return Objects List
      */
-    public List<T> getRowsAsObjects() {
-        return new ArrayList<T>(rowObjList);
+    public List<EB> getRowsAsObjects() {
+        return new ArrayList<EB>(rowObjList);
     }
 
 
@@ -90,11 +90,11 @@ public class ExcelSheetContentsHandler<T extends IExcelBean> implements SheetCon
             return;
         }
 
-        // Create a new instance of entity for each row
+        // Create a new instance of ExcelBean for each row
         try {
-            currentRowEntity = entityType.newInstance();
+            currentRowEntity = excelBeanType.newInstance();
         } catch (Exception ex) {
-            String errMsg = String.format("Error occured while creating new instance of - %s", entityType);
+            String errMsg = String.format("Error occured while creating new instance of - %s", excelBeanType);
             LOGGER.error(errMsg, ex);
         }
     }
@@ -109,7 +109,7 @@ public class ExcelSheetContentsHandler<T extends IExcelBean> implements SheetCon
             return;
         }
 
-        // Add the current row entity to the Objects list
+        // Add the current row Object to the Objects list
         if (currentRowEntity != null) {
             this.rowObjList.add(currentRowEntity);
         }
@@ -167,14 +167,14 @@ public class ExcelSheetContentsHandler<T extends IExcelBean> implements SheetCon
     }
 
     private void saveRowCellValue(String cellRef, String cellValue) {
-        // Now set the value in the row entity
+        // Now set the value in the row Object
         String cellColRef = ExcelUtil.getCellColumnReference(cellRef);
         String cellColName = headerCellMap.get(cellColRef);
         if (cellColName == null) {
             return;
         }
 
-        String propName = this.entityPropertyMapping.get(cellColName);
+        String propName = this.beanPropertyMapping.get(cellColName);
         if (StringUtils.isEmpty(propName)) {
             LOGGER.debug("Row[#] {} : No mathching property found for column[name] - {}", currentRow, cellColName);
             return;
