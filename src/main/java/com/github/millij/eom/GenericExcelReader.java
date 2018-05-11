@@ -26,6 +26,7 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 
+import com.github.millij.eom.exception.ExcelReadException;
 import com.github.millij.eom.spi.IExcelBean;
 import com.github.millij.eom.spi.handler.ExcelSheetContentsHandler;
 
@@ -77,7 +78,7 @@ public class GenericExcelReader {
     // Methods
     // ------------------------------------------------------------------------
 
-    public <EB extends IExcelBean> List<EB> read(Class<EB> beanType) {
+    public <EB extends IExcelBean> List<EB> read(Class<EB> beanType) throws ExcelReadException {
         // Get the workbook instance
         Workbook workbook = this.getWorkBook(this.file, this.fileType);
         int noOfSheets = workbook.getNumberOfSheets();
@@ -92,7 +93,7 @@ public class GenericExcelReader {
         return beans;
     }
 
-    public <EB extends IExcelBean> List<EB> read(int sheetNo, Class<EB> beanClz) {
+    public <EB extends IExcelBean> List<EB> read(int sheetNo, Class<EB> beanClz) throws ExcelReadException {
         // Sanity checks
         if (beanClz == null) {
             throw new IllegalArgumentException("GenericExcelWriter :: IExcelBean class type should not be null");
@@ -132,9 +133,8 @@ public class GenericExcelReader {
             String errMsg =
                     String.format("Error reading sheet %d, ExcelBean %s : %s", sheetNo, beanClz, ex.getMessage());
             LOGGER.error(errMsg, ex);
+            throw new ExcelReadException(errMsg, ex);
         }
-
-        return null;
     }
 
 

@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.github.millij.eom.bean.Company;
 import com.github.millij.eom.bean.Employee;
+import com.github.millij.eom.exception.ExcelReadException;
 
 
 public class GenericExcelReaderTest {
@@ -52,7 +53,7 @@ public class GenericExcelReaderTest {
     // ------------------------------------------------------------------------
 
     @Test
-    public void test_read_xlsx_single_sheet() {
+    public void test_read_xlsx_single_sheet() throws ExcelReadException {
         // Excel Reader
         LOGGER.info("test_read_xlsx_single_sheet :: Reading file - {}", _filepath_xlsx_single_sheet);
         GenericExcelReader ger = new GenericExcelReader(_filepath_xlsx_single_sheet);
@@ -69,7 +70,7 @@ public class GenericExcelReaderTest {
 
 
     @Test
-    public void test_read_xlsx_multiple_sheets() {
+    public void test_read_xlsx_multiple_sheets() throws ExcelReadException {
         // Excel Reader
         LOGGER.info("test_read_xlsx_multiple_sheets :: Reading file - {}", _filepath_xlsx_multiple_sheets);
         GenericExcelReader ger = new GenericExcelReader(_filepath_xlsx_multiple_sheets);
