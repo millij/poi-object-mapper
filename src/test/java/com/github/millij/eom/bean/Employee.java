@@ -8,10 +8,8 @@ import com.github.millij.eom.spi.annotation.ExcelSheet;
 @ExcelSheet("Employees")
 public class Employee implements IExcelBean {
 
-    @ExcelColumn("ID")
+    // Note that Id and Name are annotated at name level
     private String id;
-
-    @ExcelColumn("Name")
     private String name;
 
     @ExcelColumn("Age")
@@ -48,6 +46,7 @@ public class Employee implements IExcelBean {
     // Getters and Setters
     // ------------------------------------------------------------------------
 
+    @ExcelColumn("ID")
     public String getId() {
         return id;
     }
@@ -56,6 +55,7 @@ public class Employee implements IExcelBean {
         this.id = id;
     }
 
+    @ExcelColumn("Name")
     public String getName() {
         return name;
     }

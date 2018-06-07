@@ -12,7 +12,7 @@ public @interface ExcelColumn {
     /**
      * Name of the column to map the annotated property with.
      */
-    String value();
+    String value() default "";
 
     /**
      * Setting this to <code>false</code> will enable the null check on the Column values, to ensure
