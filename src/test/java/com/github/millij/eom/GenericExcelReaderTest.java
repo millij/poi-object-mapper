@@ -51,6 +51,49 @@ public class GenericExcelReaderTest {
 
     // Tests
     // ------------------------------------------------------------------------
+    
+
+    @Test
+    public void test_read_xls_single_sheet() throws ExcelReadException {
+        // Excel Reader
+        LOGGER.info("test_read_xls_single_sheet :: Reading file - {}", _filepath_xls_single_sheet);
+        GenericExcelReader ger = new GenericExcelReader(_filepath_xls_single_sheet);
+
+        // Read
+        List<Employee> employees = ger.read(Employee.class);
+        Assert.assertNotNull(employees);
+        Assert.assertTrue(employees.size() > 0);
+
+        for (Employee emp : employees) {
+            LOGGER.info("test_read_xls_single_sheet :: Output - {}", emp);
+        }
+    }
+
+
+    @Test
+    public void test_read_xls_multiple_sheets() throws ExcelReadException {
+        // Excel Reader
+        LOGGER.info("test_read_xlsx_multiple_sheets :: Reading file - {}", _filepath_xls_multiple_sheets);
+        GenericExcelReader ger = new GenericExcelReader(_filepath_xls_multiple_sheets);
+
+        // Read Sheet 1
+        List<Employee> employees = ger.read(0, Employee.class);
+        Assert.assertNotNull(employees);
+        Assert.assertTrue(employees.size() > 0);
+
+        for (Employee emp : employees) {
+            LOGGER.info("test_read_xls_multiple_sheets :: Output - {}", emp);
+        }
+
+        // Read Sheet 2
+        List<Company> companies = ger.read(1, Company.class);
+        Assert.assertNotNull(companies);
+        Assert.assertTrue(companies.size() > 0);
+
+        for (Company company : companies) {
+            LOGGER.info("test_read_xls_multiple_sheets :: Output - {}", company);
+        }
+    }
 
     @Test
     public void test_read_xlsx_single_sheet() throws ExcelReadException {

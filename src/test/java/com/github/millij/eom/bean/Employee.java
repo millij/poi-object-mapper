@@ -5,7 +5,7 @@ import com.github.millij.eom.spi.annotation.ExcelColumn;
 import com.github.millij.eom.spi.annotation.ExcelSheet;
 
 
-@ExcelSheet("Employees")
+@ExcelSheet
 public class Employee implements IExcelBean {
 
     // Note that Id and Name are annotated at name level
