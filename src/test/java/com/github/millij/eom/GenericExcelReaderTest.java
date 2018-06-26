@@ -2,6 +2,7 @@ package com.github.millij.eom;
 
 import java.text.ParseException;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -53,6 +54,8 @@ public class GenericExcelReaderTest {
     // ------------------------------------------------------------------------
     
 
+    // XLS
+
     @Test
     public void test_read_xls_single_sheet() throws ExcelReadException {
         // Excel Reader
@@ -68,7 +71,6 @@ public class GenericExcelReaderTest {
             LOGGER.info("test_read_xls_single_sheet :: Output - {}", emp);
         }
     }
-
 
     @Test
     public void test_read_xls_multiple_sheets() throws ExcelReadException {
@@ -94,6 +96,10 @@ public class GenericExcelReaderTest {
             LOGGER.info("test_read_xls_multiple_sheets :: Output - {}", company);
         }
     }
+
+
+
+    // XLSX
 
     @Test
     public void test_read_xlsx_single_sheet() throws ExcelReadException {
@@ -134,6 +140,26 @@ public class GenericExcelReaderTest {
 
         for (Company company : companies) {
             LOGGER.info("test_read_xlsx_multiple_sheets :: Output - {}", company);
+        }
+    }
+
+
+
+    // Read to Map
+
+    @Test
+    public void test_read_xlsx_as_Map() throws ExcelReadException {
+        // Excel Reader
+        LOGGER.info("test_read_xlsx_as_Map :: Reading file - {}", _filepath_xlsx_single_sheet);
+        GenericExcelReader ger = new GenericExcelReader(_filepath_xlsx_single_sheet);
+
+        // Read
+        List<Map<String, Object>> employees = ger.readAsMap();
+        Assert.assertNotNull(employees);
+        Assert.assertTrue(employees.size() > 0);
+
+        for (Map<String, Object> emp : employees) {
+            LOGGER.info("test_read_xlsx_single_sheet :: Output - {}", emp);
         }
     }
 

@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -29,6 +30,7 @@ import org.xml.sax.XMLReader;
 import com.github.millij.eom.exception.ExcelReadException;
 import com.github.millij.eom.spi.IExcelBean;
 import com.github.millij.eom.spi.handler.ExcelSheetContentsHandler;
+import com.github.millij.eom.spi.handler.MapObjectSheetContentsHandler;
 
 
 public class GenericExcelReader {
@@ -138,6 +140,66 @@ public class GenericExcelReader {
     }
 
 
+    // Read as Map<K, V>
+
+    public List<Map<String, Object>> readAsMap() throws ExcelReadException {
+        // Get the workbook instance
+        Workbook workbook = this.getWorkBook(this.file, this.fileType);
+        int noOfSheets = workbook.getNumberOfSheets();
+        LOGGER.debug("Total no of Sheets found : " + noOfSheets);
+
+        // Iterate over all Sheets
+        final List<Map<String, Object>> beans = new ArrayList<Map<String, Object>>();
+        for (int i = 0; i < noOfSheets; i++) {
+            beans.addAll(this.readAsMap(i));
+        }
+
+        return beans;
+    }
+
+    public List<Map<String, Object>> readAsMap(int sheetNo) throws ExcelReadException {
+        try {
+            final OPCPackage opcPkg = OPCPackage.open(this.file);
+
+            // XSSF Reader
+            XSSFReader xssfReader = new XSSFReader(opcPkg);
+            StylesTable styles = xssfReader.getStylesTable();
+
+            // Content Handler
+            ReadOnlySharedStringsTable ssTable = new ReadOnlySharedStringsTable(opcPkg);
+            MapObjectSheetContentsHandler sheetContentsHandler = new MapObjectSheetContentsHandler();
+            ContentHandler handler = new XSSFSheetXMLHandler(styles, ssTable, sheetContentsHandler, true);
+
+            // XML Reader
+            XMLReader xmlReader = SAXHelper.newXMLReader();
+            xmlReader.setContentHandler(handler);
+
+            // Iterate over sheets
+            XSSFReader.SheetIterator worksheets = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
+            for (int i = 0; worksheets.hasNext(); i++) {
+                InputStream sheetInpStream = worksheets.next();
+
+                // Read Sheet
+                if (i == sheetNo) {
+                    xmlReader.parse(new InputSource(sheetInpStream));
+                }
+
+                sheetInpStream.close();
+            }
+
+            return sheetContentsHandler.getRowsAsObjects();
+        } catch (Exception ex) {
+            String errMsg = String.format("Error reading sheet %d, : %s", sheetNo, ex.getMessage());
+            LOGGER.error(errMsg, ex);
+            throw new ExcelReadException(errMsg, ex);
+        }
+    }
+
+
+
+
+
+    
     // Private Methods
     // ------------------------------------------------------------------------
 
