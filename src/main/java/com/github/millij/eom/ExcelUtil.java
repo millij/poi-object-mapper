@@ -1,6 +1,7 @@
 package com.github.millij.eom;
 
 import java.beans.IntrospectionException;
+import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -40,6 +41,8 @@ public class ExcelUtil {
     // Utilities
     // ------------------------------------------------------------------------
 
+    // File
+
     public static String getFileExtension(File inFile) {
         // Sanity checks
         if (inFile == null) {
@@ -59,34 +62,7 @@ public class ExcelUtil {
     }
 
 
-    public static Map<String, String> getColumnToPropertyMap(Class<? extends IExcelBean> excelBeanType) {
-        // Sanity checks
-        if (excelBeanType == null) {
-            throw new IllegalArgumentException("getColumnToPropertyMap :: Invalid ExcelBean type - " + excelBeanType);
-        }
-
-        // Column to Property Mapping
-        Map<String, String> mapping = new HashMap<String, String>();
-
-        Field[] fields = excelBeanType.getDeclaredFields();
-        if (fields == null || fields.length == 0) {
-            return mapping;
-        }
-
-        for (int i = 0; i < fields.length; i++) {
-            Field f = fields[i];
-
-            Annotation annotation = f.getAnnotation(ExcelColumn.class);
-            ExcelColumn ec = (ExcelColumn) annotation;
-
-            if (ec != null && ec.value() != null && !ec.value().isEmpty()) {
-                mapping.put(ec.value(), f.getName());
-            }
-        }
-
-        return Collections.unmodifiableMap(mapping);
-    }
-
+    // Excel
 
     public static String getCellColumnReference(String cellRef) {
         // Sanity checks
@@ -98,29 +74,9 @@ public class ExcelUtil {
         String cellColRef = cellRef.split("[0-9]*$")[0];
         return cellColRef;
     }
-
-
-    public static List<String> getColumnHeaders(Class<? extends IExcelBean> excelBeanType) {
-        // Sanity checks
-        if (excelBeanType == null) {
-            throw new IllegalArgumentException("getColumnHeaders :: ExcelBean class type should not be null");
-        }
-
-        // Headers list
-        final List<String> headers = new ArrayList<String>();
-        for (Field field : excelBeanType.getDeclaredFields()) {
-            if (!field.isAnnotationPresent(ExcelColumn.class)) {
-                continue;
-            }
-
-            ExcelColumn column = field.getAnnotation(ExcelColumn.class);
-            String header = column.value();
-            headers.add(header);
-        }
-
-        return headers;
-    }
-
+    
+    
+    // Bean Data Mapping
 
     public static Map<String, String> asRowDataMap(IExcelBean beanObj, List<String> headers)
             throws IllegalAccessException, InvocationTargetException, IntrospectionException {
@@ -155,5 +111,88 @@ public class ExcelUtil {
 
         return rowDataMap;
     }
+
+
+ 
+    // Bean :: Property Utils
+
+    public static Map<String, String> getPropertyToColumnNameMap(Class<? extends IExcelBean> excelBeanType) {
+        // Sanity checks
+        if (excelBeanType == null) {
+            throw new IllegalArgumentException("getColumnToPropertyMap :: Invalid ExcelBean type - " + excelBeanType);
+        }
+
+        // Property to Column name Mapping
+        final Map<String, String> mapping = new HashMap<String, String>();
+
+        // Check fields
+        Field[] fields = excelBeanType.getDeclaredFields();
+        for (Field f : fields) {
+            String fieldName = f.getName();
+            mapping.put(fieldName, fieldName);
+
+            Annotation annotation = f.getAnnotation(ExcelColumn.class);
+            ExcelColumn ec = (ExcelColumn) annotation;
+            if (ec != null && StringUtils.isNotEmpty(ec.value())) {
+                mapping.put(fieldName, ec.value());
+            }
+        }
+
+        // Methods
+        Method[] methods = excelBeanType.getDeclaredMethods();
+        for (Method m : methods) {
+            String fieldName = getFieldName(m);
+            if (!mapping.containsKey(fieldName)) {
+                mapping.put(fieldName, fieldName);
+            }
+
+            Annotation annotation = m.getAnnotation(ExcelColumn.class);
+            ExcelColumn ec = (ExcelColumn) annotation;
+            if (ec != null && StringUtils.isNotEmpty(ec.value())) {
+                mapping.put(fieldName, ec.value());
+            } 
+        }
+
+        LOGGER.info("Bean property to Excel Column of - {} : {}", excelBeanType, mapping);
+        return Collections.unmodifiableMap(mapping);
+    }
+
+    public static Map<String, String> getColumnToPropertyMap(Class<? extends IExcelBean> excelBeanType) {
+        // Column to Property Mapping
+        final Map<String, String> columnToPropMap = new HashMap<String, String>();
+
+        // Bean Property to Column Mapping
+        final Map<String, String> propToColumnMap = getPropertyToColumnNameMap(excelBeanType);
+        for (String prop : propToColumnMap.keySet()) {
+            columnToPropMap.put(propToColumnMap.get(prop), prop);
+        }
+
+        LOGGER.info("Excel Column to property map of - {} : {}", excelBeanType, columnToPropMap);
+        return Collections.unmodifiableMap(columnToPropMap);
+    }
+
+    public static List<String> getColumnNames(Class<? extends IExcelBean> excelBeanType) {
+        // Bean Property to Column Mapping
+        final Map<String, String> propToColumnMap = getPropertyToColumnNameMap(excelBeanType);
+        
+        final ArrayList<String> columnNames = new ArrayList<>(propToColumnMap.values());
+        return columnNames;
+    }
+
+    
+    // Private Utils
+    // ------------------------------------------------------------------------
+
+    private static String getFieldName(Method method) {
+        // Sanity checks
+        if (method == null) {
+            return null;
+        }
+
+        String methodName = method.getName();
+        return Introspector.decapitalize(methodName.substring(methodName.startsWith("is") ? 2 : 3));
+    }
+
+
 
 }

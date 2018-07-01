@@ -60,7 +60,7 @@ public class GenericExcelWriter {
     
     public <EB extends IExcelBean> void addSheet(Class<EB> beanType, List<EB> rowObjects) {
         // Sheet Headers
-        List<String> headers = ExcelUtil.getColumnHeaders(beanType);
+        List<String> headers = ExcelUtil.getColumnNames(beanType);
 
         this.addSheet(beanType, rowObjects, headers);
     }
@@ -75,7 +75,7 @@ public class GenericExcelWriter {
 
     public <EB extends IExcelBean> void addSheet(Class<EB> beanType, List<EB> rowObjects, String sheetName) {
         // Sheet Headers
-        List<String> headers = ExcelUtil.getColumnHeaders(beanType);
+        List<String> headers = ExcelUtil.getColumnNames(beanType);
 
         this.addSheet(beanType, rowObjects, headers, sheetName);
     }
