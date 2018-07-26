@@ -116,3 +116,8 @@ local.properties
 hs_err_pid*
 git_version
 /bin
+
+### JUnit : Tests ##
+test-cases/
+test-output/
+
