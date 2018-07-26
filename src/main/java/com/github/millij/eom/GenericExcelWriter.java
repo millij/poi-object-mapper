@@ -1,18 +1,17 @@
 package com.github.millij.eom;
 
-import java.beans.IntrospectionException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -68,7 +67,7 @@ public class GenericExcelWriter {
     public <EB extends IExcelBean> void addSheet(Class<EB> beanType, List<EB> rowObjects, List<String> headers) {
         // SheetName
         ExcelSheet excelSheet = beanType.getAnnotation(ExcelSheet.class);
-        String sheetName = excelSheet.value();
+        String sheetName = excelSheet != null ? excelSheet.value() : null;
 
         this.addSheet(beanType, rowObjects, headers, sheetName);
     }
@@ -104,8 +103,8 @@ public class GenericExcelWriter {
                 throw new IllegalArgumentException(errMsg);
             }
 
-            LOGGER.debug("Adding new Sheet[name] to the workbook : {}", sheetName);
-            XSSFSheet sheet = workbook.createSheet(sheetName);
+            XSSFSheet sheet = StringUtils.isEmpty(sheetName) ? workbook.createSheet() : workbook.createSheet(sheetName);
+            LOGGER.debug("Added new Sheet[name] to the workbook : {}", sheet.getSheetName());
 
             // Header
             XSSFRow headerRow = sheet.createRow(0);
@@ -138,7 +137,7 @@ public class GenericExcelWriter {
     // Sheet :: Append to existing
 
 
-
+    
     // Write
 
     public void write() throws IOException {
@@ -151,7 +150,7 @@ public class GenericExcelWriter {
     // ------------------------------------------------------------------------
 
     private <EB extends IExcelBean> Map<String, List<String>> prepareSheetRowsData(List<String> headers,
-            List<EB> rowObjects) throws IllegalAccessException, InvocationTargetException, IntrospectionException {
+            List<EB> rowObjects) throws Exception {
 
         final Map<String, List<String>> sheetData = new LinkedHashMap<String, List<String>>();
 
