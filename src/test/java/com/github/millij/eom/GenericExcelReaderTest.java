@@ -7,6 +7,7 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +57,7 @@ public class GenericExcelReaderTest {
 
     // XLS
 
+    @Ignore
     @Test
     public void test_read_xls_single_sheet() throws ExcelReadException {
         // Excel Reader
@@ -72,6 +74,7 @@ public class GenericExcelReaderTest {
         }
     }
 
+    @Ignore
     @Test
     public void test_read_xls_multiple_sheets() throws ExcelReadException {
         // Excel Reader
