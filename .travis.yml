@@ -1,5 +1,8 @@
 language: java
 
+env:
+- COVERALLS_REPO_TOKEN=4CaLAImlPNsl2mLKmrZZNkb59GR2hROro
+
 
 
 after_success:
