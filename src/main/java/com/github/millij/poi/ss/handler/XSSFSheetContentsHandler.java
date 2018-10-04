@@ -1,4 +1,4 @@
-package com.github.millij.poi.spi.handler;
+package com.github.millij.poi.ss.handler;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.millij.poi.util.ExcelUtil;
+import com.github.millij.poi.util.Spreadsheet;
 
 
 
@@ -37,7 +37,7 @@ public class XSSFSheetContentsHandler<T> extends AbstractSheetContentsHandler {
         this.beanType = beanType;
         this.rowObjects = new ArrayList<T>();
 
-        this.beanPropertyMapping = ExcelUtil.getColumnToPropertyMap(beanType);
+        this.beanPropertyMapping = Spreadsheet.getColumnToPropertyMap(beanType);
     }
 
 

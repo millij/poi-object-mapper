@@ -1,4 +1,4 @@
-package com.github.millij.poi.spi.annotation;
+package com.github.millij.poi.ss.model;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD})
-public @interface ExcelColumn {
+public @interface SheetColumn {
 
     /**
      * Name of the column to map the annotated property with.

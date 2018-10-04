@@ -1,20 +1,19 @@
-package com.github.millij.eom.bean;
+package com.github.millij.bean;
 
-import com.github.millij.eom.spi.IExcelBean;
-import com.github.millij.eom.spi.annotation.ExcelColumn;
-import com.github.millij.eom.spi.annotation.ExcelSheet;
+import com.github.millij.poi.ss.model.SheetColumn;
+import com.github.millij.poi.ss.model.Sheet;
 
 
-@ExcelSheet("Companies")
-public class Company implements IExcelBean {
+@Sheet("Companies")
+public class Company {
 
-    @ExcelColumn("Company Name")
+    @SheetColumn("Company Name")
     private String name;
 
-    @ExcelColumn("# of Employees")
+    @SheetColumn("# of Employees")
     private Integer noOfEmployees;
 
-    @ExcelColumn("Address")
+    @SheetColumn("Address")
     private String address;
 
 

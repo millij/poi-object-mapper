@@ -1,4 +1,4 @@
-package com.github.millij.poi.spi.annotation;
+package com.github.millij.poi.ss.model;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -22,7 +22,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RUNTIME)
 @Target(TYPE)
-public @interface ExcelSheet {
+public @interface Sheet {
 
     /**
      * Name of the sheet.

@@ -1,4 +1,4 @@
-package com.github.millij.poi.spi.handler;
+package com.github.millij.poi.ss.handler;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,6 +8,8 @@ import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler.SheetContentsHandl
 import org.apache.poi.xssf.usermodel.XSSFComment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.github.millij.poi.util.Spreadsheet;
 
 
 public abstract class AbstractSheetContentsHandler implements SheetContentsHandler {
@@ -106,7 +108,7 @@ public abstract class AbstractSheetContentsHandler implements SheetContentsHandl
             this.saveHeaderCellValue(cellRef, cellVal);
         } else {
             // ColumnName
-            String cellColRef = this.getCellColumnReference(cellRef);
+            String cellColRef = Spreadsheet.getCellColumnReference(cellRef);
             String cellColName = headerCellMap.get(cellColRef);
 
             // Set the CellValue in the Map
@@ -130,24 +132,10 @@ public abstract class AbstractSheetContentsHandler implements SheetContentsHandl
     }
 
     protected void saveHeaderCellValue(String cellRef, String cellValue) {
-        String cellColRef = this.getCellColumnReference(cellRef);
+        String cellColRef = Spreadsheet.getCellColumnReference(cellRef);
         headerCellMap.put(cellColRef, cellValue);
     }
 
-    
-    // Private Methods
-    // ------------------------------------------------------------------------
-
-    private String getCellColumnReference(String cellRef) {
-        // Sanity checks
-        if (StringUtils.isEmpty(cellRef)) {
-            return "";
-        }
-
-        // Splits the Cell name and returns the column reference
-        String cellColRef = cellRef.split("[0-9]*$")[0];
-        return cellColRef;
-    }
 
 
 }

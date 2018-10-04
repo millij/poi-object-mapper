@@ -1,4 +1,4 @@
-package com.github.millij.eom;
+package com.github.millij.poi.ss.writer;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,13 +13,13 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.millij.eom.bean.Company;
-import com.github.millij.eom.bean.Employee;
+import com.github.millij.bean.Company;
+import com.github.millij.bean.Employee;
 
 
-public class GenericExcelWriterTest {
+public class ExcelWriterTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GenericExcelWriterTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExcelWriterTest.class);
 
     private final String _path_test_output = "test-cases/output/";
 
@@ -50,7 +50,7 @@ public class GenericExcelWriterTest {
 
         // Excel Writer
         LOGGER.info("test_write_xlsx_single_sheet :: Writing to file - {}", filepath_output_file);
-        GenericExcelWriter gew = new GenericExcelWriter(filepath_output_file);
+        ExcelWriter gew = new ExcelWriter(filepath_output_file);
 
         // Employees
         List<Employee> employees = new ArrayList<Employee>();
@@ -69,7 +69,7 @@ public class GenericExcelWriterTest {
 
         // Excel Writer
         LOGGER.info("test_write_xlsx_single_sheet :: Writing to file - {}", filepath_output_file);
-        GenericExcelWriter gew = new GenericExcelWriter(filepath_output_file);
+        ExcelWriter gew = new ExcelWriter(filepath_output_file);
 
         // Employees
         List<Employee> employees = new ArrayList<Employee>();
@@ -93,7 +93,7 @@ public class GenericExcelWriterTest {
 
         // Excel Writer
         LOGGER.info("test_write_xlsx_single_sheet :: Writing to file - {}", filepath_output_file);
-        GenericExcelWriter gew = new GenericExcelWriter(filepath_output_file);
+        ExcelWriter gew = new ExcelWriter(filepath_output_file);
 
         // Employees
         List<Employee> employees = new ArrayList<Employee>();
