@@ -1,4 +1,4 @@
-package com.github.millij.eom;
+package com.github.millij.poi.util;
 
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -16,8 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.millij.eom.spi.IExcelBean;
-import com.github.millij.eom.spi.annotation.ExcelColumn;
+import com.github.millij.poi.spi.annotation.ExcelColumn;
 
 
 public class ExcelUtil {
@@ -28,18 +27,18 @@ public class ExcelUtil {
         // Utility Class
     }
 
-    // Labels
-    // ------------------------------------------------------------------------
 
     public final static String EXTN_XLS = "xls";
     public final static String EXTN_XLSX = "xlsx";
 
-
+    
     // Utilities
     // ------------------------------------------------------------------------
 
+
     // File
 
+    @Deprecated
     public static String getFileExtension(File inFile) {
         // Sanity checks
         if (inFile == null) {
@@ -71,18 +70,18 @@ public class ExcelUtil {
         String cellColRef = cellRef.split("[0-9]*$")[0];
         return cellColRef;
     }
-    
-    
+
+
     // Bean Data Mapping
 
-    public static Map<String, String> asRowDataMap(IExcelBean beanObj, List<String> headers) throws Exception {
+    public static Map<String, String> asRowDataMap(Object beanObj, List<String> headers) throws Exception {
         // Sanity checks
         if (beanObj == null || CollectionUtils.isEmpty(headers)) {
             return new HashMap<>();
         }
 
         // Excel Bean Type
-        final Class<? extends IExcelBean> excelBeanType = beanObj.getClass();
+        final Class<?> excelBeanType = beanObj.getClass();
 
         // RowData map
         final Map<String, String> rowDataMap = new HashMap<String, String>();
@@ -128,7 +127,7 @@ public class ExcelUtil {
 
     // Bean :: Property Utils
 
-    public static Map<String, String> getPropertyToColumnNameMap(Class<? extends IExcelBean> excelBeanType) {
+    public static Map<String, String> getPropertyToColumnNameMap(Class<?> excelBeanType) {
         // Sanity checks
         if (excelBeanType == null) {
             throw new IllegalArgumentException("getColumnToPropertyMap :: Invalid ExcelBean type - " + excelBeanType);
@@ -167,7 +166,7 @@ public class ExcelUtil {
         return Collections.unmodifiableMap(mapping);
     }
 
-    public static Map<String, String> getColumnToPropertyMap(Class<? extends IExcelBean> excelBeanType) {
+    public static Map<String, String> getColumnToPropertyMap(Class<?> excelBeanType) {
         // Column to Property Mapping
         final Map<String, String> columnToPropMap = new HashMap<String, String>();
 
@@ -181,15 +180,15 @@ public class ExcelUtil {
         return Collections.unmodifiableMap(columnToPropMap);
     }
 
-    public static List<String> getColumnNames(Class<? extends IExcelBean> excelBeanType) {
+    public static List<String> getColumnNames(Class<?> excelBeanType) {
         // Bean Property to Column Mapping
         final Map<String, String> propToColumnMap = getPropertyToColumnNameMap(excelBeanType);
-        
+
         final ArrayList<String> columnNames = new ArrayList<>(propToColumnMap.values());
         return columnNames;
     }
 
-    
+
     // Private Utils
     // ------------------------------------------------------------------------
 
@@ -210,7 +209,7 @@ public class ExcelUtil {
 
         Object value = getterMtd.invoke(beanObj);
         String cellValue = value != null ? value.toString() : "";
-        
+
         return cellValue;
     }
 
