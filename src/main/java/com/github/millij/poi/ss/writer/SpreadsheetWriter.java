@@ -1,4 +1,4 @@
-package com.github.millij.eom;
+package com.github.millij.poi.ss.writer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -20,13 +20,13 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.millij.eom.spi.IExcelBean;
-import com.github.millij.eom.spi.annotation.ExcelSheet;
+import com.github.millij.poi.ss.model.Sheet;
+import com.github.millij.poi.util.Spreadsheet;
 
 
-public class GenericExcelWriter {
+public class SpreadsheetWriter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GenericExcelWriter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SpreadsheetWriter.class);
 
     private final XSSFWorkbook workbook;
     private final OutputStream outputStrem;
@@ -35,15 +35,15 @@ public class GenericExcelWriter {
     // Constructors
     // ------------------------------------------------------------------------
 
-    public GenericExcelWriter(String filepath) throws FileNotFoundException {
+    public SpreadsheetWriter(String filepath) throws FileNotFoundException {
         this(new File(filepath));
     }
 
-    public GenericExcelWriter(File file) throws FileNotFoundException {
+    public SpreadsheetWriter(File file) throws FileNotFoundException {
         this(new FileOutputStream(file));
     }
 
-    public GenericExcelWriter(OutputStream outputStream) {
+    public SpreadsheetWriter(OutputStream outputStream) {
         super();
 
         this.workbook = new XSSFWorkbook();
@@ -57,29 +57,29 @@ public class GenericExcelWriter {
     
     // Sheet :: Add
     
-    public <EB extends IExcelBean> void addSheet(Class<EB> beanType, List<EB> rowObjects) {
+    public <EB> void addSheet(Class<EB> beanType, List<EB> rowObjects) {
         // Sheet Headers
-        List<String> headers = ExcelUtil.getColumnNames(beanType);
+        List<String> headers = Spreadsheet.getColumnNames(beanType);
 
         this.addSheet(beanType, rowObjects, headers);
     }
 
-    public <EB extends IExcelBean> void addSheet(Class<EB> beanType, List<EB> rowObjects, List<String> headers) {
+    public <EB> void addSheet(Class<EB> beanType, List<EB> rowObjects, List<String> headers) {
         // SheetName
-        ExcelSheet excelSheet = beanType.getAnnotation(ExcelSheet.class);
-        String sheetName = excelSheet != null ? excelSheet.value() : null;
+        Sheet sheet = beanType.getAnnotation(Sheet.class);
+        String sheetName = sheet != null ? sheet.value() : null;
 
         this.addSheet(beanType, rowObjects, headers, sheetName);
     }
 
-    public <EB extends IExcelBean> void addSheet(Class<EB> beanType, List<EB> rowObjects, String sheetName) {
+    public <EB> void addSheet(Class<EB> beanType, List<EB> rowObjects, String sheetName) {
         // Sheet Headers
-        List<String> headers = ExcelUtil.getColumnNames(beanType);
+        List<String> headers = Spreadsheet.getColumnNames(beanType);
 
         this.addSheet(beanType, rowObjects, headers, sheetName);
     }
 
-    public <EB extends IExcelBean> void addSheet(Class<EB> beanType, List<EB> rowObjects, List<String> headers,
+    public <EB> void addSheet(Class<EB> beanType, List<EB> rowObjects, List<String> headers,
             String sheetName) {
         // Sanity checks
         if (beanType == null) {
@@ -149,14 +149,14 @@ public class GenericExcelWriter {
     // Private Methods
     // ------------------------------------------------------------------------
 
-    private <EB extends IExcelBean> Map<String, List<String>> prepareSheetRowsData(List<String> headers,
+    private <EB> Map<String, List<String>> prepareSheetRowsData(List<String> headers,
             List<EB> rowObjects) throws Exception {
 
         final Map<String, List<String>> sheetData = new LinkedHashMap<String, List<String>>();
 
         // Iterate over Objects
         for (EB excelBean : rowObjects) {
-            Map<String, String> row = ExcelUtil.asRowDataMap(excelBean, headers);
+            Map<String, String> row = Spreadsheet.asRowDataMap(excelBean, headers);
 
             for (String header : headers) {
                 List<String> data = sheetData.containsKey(header) ? sheetData.get(header) : new ArrayList<String>();

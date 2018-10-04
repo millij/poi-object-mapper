@@ -1,1 +1,12 @@
 language: java
+
+env:
+- COVERALLS_REPO_TOKEN=4CaLAImlPNsl2mLKmrZZNkb59GR2hROro
+
+
+
+after_success:
+- ./gradlew jacocoTestReport coveralls
+
+after_failure:
+- ./gradlew clean check --debug

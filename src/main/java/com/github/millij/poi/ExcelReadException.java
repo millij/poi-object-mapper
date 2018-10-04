@@ -1,4 +1,4 @@
-package com.github.millij.eom.exception;
+package com.github.millij.poi;
 
 
 public class ExcelReadException extends Exception {

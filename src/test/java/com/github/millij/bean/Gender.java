@@ -1,4 +1,4 @@
-package com.github.millij.eom.bean;
+package com.github.millij.bean;
 
 
 public enum Gender {

@@ -1,13 +1,23 @@
-package com.github.millij.eom.spi.annotation;
+package com.github.millij.poi.ss.model;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+
+/**
+ * Marker annotation that can be used to define a non-static method as a "setter" or "getter" for a
+ * column, or non-static field to be used as a column.
+ * 
+ * <p>
+ * Default value ("") indicates that the field name is used as the column name without any
+ * modifications, but it can be specified to non-empty value to specify different name.
+ * </p>
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD})
-public @interface ExcelColumn {
+public @interface SheetColumn {
 
     /**
      * Name of the column to map the annotated property with.

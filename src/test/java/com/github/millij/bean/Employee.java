@@ -1,27 +1,26 @@
-package com.github.millij.eom.bean;
+package com.github.millij.bean;
 
-import com.github.millij.eom.spi.IExcelBean;
-import com.github.millij.eom.spi.annotation.ExcelColumn;
-import com.github.millij.eom.spi.annotation.ExcelSheet;
+import com.github.millij.poi.ss.model.SheetColumn;
+import com.github.millij.poi.ss.model.Sheet;
 
 
-@ExcelSheet
-public class Employee implements IExcelBean {
+@Sheet
+public class Employee {
 
     // Note that Id and Name are annotated at name level
     private String id;
     private String name;
 
-    @ExcelColumn("Age")
+    @SheetColumn("Age")
     private Integer age;
 
-    @ExcelColumn("Gender")
+    @SheetColumn("Gender")
     private String gender;
 
-    @ExcelColumn("Height (mts)")
+    @SheetColumn("Height (mts)")
     private Double height;
 
-    @ExcelColumn("Address")
+    @SheetColumn("Address")
     private String address;
 
 
@@ -46,7 +45,7 @@ public class Employee implements IExcelBean {
     // Getters and Setters
     // ------------------------------------------------------------------------
 
-    @ExcelColumn("ID")
+    @SheetColumn("ID")
     public String getId() {
         return id;
     }
@@ -55,7 +54,7 @@ public class Employee implements IExcelBean {
         this.id = id;
     }
 
-    @ExcelColumn("Name")
+    @SheetColumn("Name")
     public String getName() {
         return name;
     }
