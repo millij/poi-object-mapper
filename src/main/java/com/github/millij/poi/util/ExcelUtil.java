@@ -60,6 +60,7 @@ public class ExcelUtil {
 
     // Excel
 
+    @Deprecated
     public static String getCellColumnReference(String cellRef) {
         // Sanity checks
         if (StringUtils.isEmpty(cellRef)) {

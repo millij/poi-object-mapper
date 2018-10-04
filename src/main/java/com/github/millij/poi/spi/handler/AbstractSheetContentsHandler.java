@@ -1,8 +1,6 @@
-package com.github.millij.eom.spi.handler;
+package com.github.millij.poi.spi.handler;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -11,10 +9,8 @@ import org.apache.poi.xssf.usermodel.XSSFComment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.millij.eom.ExcelUtil;
 
-
-public abstract class AbstractSheetContentsHandler<T> implements SheetContentsHandler {
+public abstract class AbstractSheetContentsHandler implements SheetContentsHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSheetContentsHandler.class);
 
@@ -24,20 +20,15 @@ public abstract class AbstractSheetContentsHandler<T> implements SheetContentsHa
     private final boolean verifyHeader;
 
     private final Map<String, String> headerCellMap;
-    private final List<T> rowObjList;
 
     private int currentRow = 0;
-    private T currentRowEntity;
+    private Map<String, Object> currentRowObj;
 
 
     // Constructors
     // ------------------------------------------------------------------------
 
-    public AbstractSheetContentsHandler(int noOfRowsToSkip) {
-        this(noOfRowsToSkip, 0, true);
-    }
-
-    public AbstractSheetContentsHandler(int noOfRowsToSkip, int headerRow, boolean verifyHeader) {
+    AbstractSheetContentsHandler(int noOfRowsToSkip, int headerRow, boolean verifyHeader) {
         super();
 
         this.noOfRowsToSkip = noOfRowsToSkip;
@@ -46,29 +37,18 @@ public abstract class AbstractSheetContentsHandler<T> implements SheetContentsHa
         this.verifyHeader = verifyHeader;
 
         this.headerCellMap = new HashMap<String, String>();
-        this.rowObjList = new ArrayList<T>();
     }
 
 
     // Methods
     // ------------------------------------------------------------------------
 
-    /**
-     * Returns the List of Object that read from the Excel Sheet.
-     * 
-     * @return Objects List
-     */
-    public List<T> getRowsAsObjects() {
-        return new ArrayList<T>(rowObjList);
-    }
-
-
-
     // Abstract
 
-    public abstract T newEntityInstance();
+    abstract void beforeRowStart(int rowNum);
 
-    public abstract void saveRowCellValue(T currentRowObj, String cellColName, String cellValue);
+    abstract void afterRowEnd(int rowNum, Map<String, Object> rowObj);
+
 
 
     // SheetContentsHandler Implementations
@@ -76,37 +56,32 @@ public abstract class AbstractSheetContentsHandler<T> implements SheetContentsHa
 
     @Override
     public void startRow(int rowNum) {
+        // Callback
+        this.beforeRowStart(rowNum);
+
+        // Handle row
         this.currentRow = rowNum;
         if (rowNum == headerRow || rowNum < noOfRowsToSkip) {
             return;
         }
 
-        // Create a new instance of ExcelBean for each row
-        try {
-            currentRowEntity = newEntityInstance();
-        } catch (Exception ex) {
-            String errMsg = String.format("Error occured while creating new instance entity instance");
-            LOGGER.error(errMsg, ex);
-        }
+        // Init Row Object
+        this.currentRowObj = new HashMap<String, Object>();
     }
 
     @Override
     public void endRow(int rowNum) {
-        if (this.headerRow == this.currentRow && verifyHeader) {
+        if (this.currentRow == this.headerRow  && verifyHeader) {
             this.verifySheetHeader();
+            return;
         }
 
         if (currentRow < noOfRowsToSkip) {
             return;
         }
 
-        // Add the current row Object to the Objects list
-        if (currentRowEntity != null) {
-            this.rowObjList.add(currentRowEntity);
-        }
-
-        // reset current Row object to null
-        currentRowEntity = null;
+        // Callback
+        this.afterRowEnd(rowNum, new HashMap<String, Object>(currentRowObj));
     }
 
     @Override
@@ -130,15 +105,13 @@ public abstract class AbstractSheetContentsHandler<T> implements SheetContentsHa
         if (this.verifyHeader && this.headerRow == this.currentRow) {
             this.saveHeaderCellValue(cellRef, cellVal);
         } else {
-            if (currentRowEntity == null) {
-                return;
-            }
-
             // ColumnName
-            String cellColRef = ExcelUtil.getCellColumnReference(cellRef);
+            String cellColRef = this.getCellColumnReference(cellRef);
             String cellColName = headerCellMap.get(cellColRef);
 
-            this.saveRowCellValue(currentRowEntity, cellColName, cellVal);
+            // Set the CellValue in the Map
+            LOGGER.debug("cell - Saving Column value : {} - {}", cellColName, cellVal);
+            currentRowObj.put(cellColName, cellVal);
         }
     }
 
@@ -157,8 +130,23 @@ public abstract class AbstractSheetContentsHandler<T> implements SheetContentsHa
     }
 
     protected void saveHeaderCellValue(String cellRef, String cellValue) {
-        String cellColRef = ExcelUtil.getCellColumnReference(cellRef);
+        String cellColRef = this.getCellColumnReference(cellRef);
         headerCellMap.put(cellColRef, cellValue);
+    }
+
+    
+    // Private Methods
+    // ------------------------------------------------------------------------
+
+    private String getCellColumnReference(String cellRef) {
+        // Sanity checks
+        if (StringUtils.isEmpty(cellRef)) {
+            return "";
+        }
+
+        // Splits the Cell name and returns the column reference
+        String cellColRef = cellRef.split("[0-9]*$")[0];
+        return cellColRef;
     }
 
 
