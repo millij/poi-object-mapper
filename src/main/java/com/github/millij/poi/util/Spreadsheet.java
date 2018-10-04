@@ -1,8 +1,7 @@
 package com.github.millij.poi.util;
 
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import com.github.millij.poi.ss.model.SheetColumn;
 
 
-public class Spreadsheet {
+public final class Spreadsheet {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Spreadsheet.class);
 
@@ -30,7 +30,7 @@ public class Spreadsheet {
     public final static String EXTN_XLS = "xls";
     public final static String EXTN_XLSX = "xlsx";
 
-    
+
     // Utilities
     // ------------------------------------------------------------------------
 
@@ -74,7 +74,7 @@ public class Spreadsheet {
                 continue;
             }
 
-            rowDataMap.put(header, getFieldValueAsString(beanObj, fieldName));
+            rowDataMap.put(header, Beans.getFieldValueAsString(beanObj, fieldName));
         }
 
         // Methods
@@ -83,7 +83,7 @@ public class Spreadsheet {
                 continue;
             }
 
-            String fieldName = getFieldName(m);
+            String fieldName = Beans.getFieldName(m);
 
             SheetColumn ec = m.getAnnotation(SheetColumn.class);
             String header = StringUtils.isEmpty(ec.value()) ? fieldName : ec.value();
@@ -91,7 +91,7 @@ public class Spreadsheet {
                 continue;
             }
 
-            rowDataMap.put(header, getFieldValueAsString(beanObj, fieldName));
+            rowDataMap.put(header, Beans.getFieldValueAsString(beanObj, fieldName));
         }
 
         return rowDataMap;
@@ -125,7 +125,7 @@ public class Spreadsheet {
         // Methods
         Method[] methods = beanType.getDeclaredMethods();
         for (Method m : methods) {
-            String fieldName = getFieldName(m);
+            String fieldName = Beans.getFieldName(m);
             if (!mapping.containsKey(fieldName)) {
                 mapping.put(fieldName, fieldName);
             }
@@ -163,29 +163,64 @@ public class Spreadsheet {
     }
 
 
-    // Private Utils
+
+
+    // Write to Bean
     // ------------------------------------------------------------------------
 
-    private static String getFieldName(Method method) {
+    public static <T> T rowAsBean(Class<T> beanClz, Map<String, Object> cellValues) {
         // Sanity checks
-        if (method == null) {
+        if (beanClz == null) {
+            throw new IllegalArgumentException("rowAsBean : invalid bean type - bean class is null");
+        }
+
+        // Extract Cell to Bean Property map
+        Map<String, String> cellPropMapping = getColumnToPropertyMap(beanClz);
+        return rowAsBean(beanClz, cellPropMapping, cellValues);
+    }
+
+    public static <T> T rowAsBean(Class<T> beanClz, Map<String, String> cellProperies, Map<String, Object> cellValues) {
+        // Sanity checks
+        if (beanClz == null) {
+            throw new IllegalArgumentException("rowAsBean : invalid bean type - bean class is null");
+        }
+
+        if (cellValues == null || cellProperies == null) {
             return null;
         }
 
-        String methodName = method.getName();
-        return Introspector.decapitalize(methodName.substring(methodName.startsWith("is") ? 2 : 3));
+        try {
+            // Create new Instance
+            T rowObj = beanClz.newInstance();
+
+            // Fill in the datat
+            for (String cellName : cellProperies.keySet()) {
+                Object cellValue = cellValues.get(cellName);
+
+                String propName = cellProperies.get(cellName);
+                if (StringUtils.isEmpty(propName)) {
+                    LOGGER.debug("{} : No mathching property found for column[name] - {} ", beanClz, cellName);
+                    continue;
+                }
+
+                // Set the property value in the current row object bean
+                try {
+                    BeanUtils.setProperty(rowObj, propName, cellValue);
+                } catch (IllegalAccessException | InvocationTargetException ex) {
+                    String errMsg = String.format("Failed to set bean property - %s, value - %s", propName, cellValue);
+                    LOGGER.error(errMsg, ex);
+                }
+            }
+
+            return rowObj;
+        } catch (Exception ex) {
+            String errMsg = String.format("Error while creating bean - %s, from - %s", beanClz, cellValues);
+            LOGGER.error(errMsg, ex);
+        }
+
+        return null;
     }
 
-    private static String getFieldValueAsString(Object beanObj, String fieldName) throws Exception {
-        // Sanity checks
-        PropertyDescriptor pd = new PropertyDescriptor(fieldName, beanObj.getClass());
-        Method getterMtd = pd.getReadMethod();
-
-        Object value = getterMtd.invoke(beanObj);
-        String cellValue = value != null ? value.toString() : "";
-
-        return cellValue;
-    }
 
 
 }

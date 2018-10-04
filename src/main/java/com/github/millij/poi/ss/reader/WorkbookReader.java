@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.util.IOUtils;
@@ -67,7 +68,10 @@ abstract class WorkbookReader {
         // Iterate over all Sheets
         final List<T> beans = new ArrayList<T>();
         for (int i = 0; i < noOfSheets; i++) {
-            beans.addAll(this.read(file, i, beanType));
+            List<T> sheetBeans = this.read(file, i, beanType);
+            if (CollectionUtils.isNotEmpty(sheetBeans)) {
+                beans.addAll(sheetBeans);
+            }
         }
 
         return beans;
