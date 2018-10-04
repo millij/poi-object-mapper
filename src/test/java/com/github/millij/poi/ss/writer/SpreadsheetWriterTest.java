@@ -17,9 +17,9 @@ import com.github.millij.bean.Company;
 import com.github.millij.bean.Employee;
 
 
-public class ExcelWriterTest {
+public class SpreadsheetWriterTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExcelWriterTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SpreadsheetWriterTest.class);
 
     private final String _path_test_output = "test-cases/output/";
 
@@ -50,7 +50,7 @@ public class ExcelWriterTest {
 
         // Excel Writer
         LOGGER.info("test_write_xlsx_single_sheet :: Writing to file - {}", filepath_output_file);
-        ExcelWriter gew = new ExcelWriter(filepath_output_file);
+        SpreadsheetWriter gew = new SpreadsheetWriter(filepath_output_file);
 
         // Employees
         List<Employee> employees = new ArrayList<Employee>();
@@ -69,7 +69,7 @@ public class ExcelWriterTest {
 
         // Excel Writer
         LOGGER.info("test_write_xlsx_single_sheet :: Writing to file - {}", filepath_output_file);
-        ExcelWriter gew = new ExcelWriter(filepath_output_file);
+        SpreadsheetWriter gew = new SpreadsheetWriter(filepath_output_file);
 
         // Employees
         List<Employee> employees = new ArrayList<Employee>();
@@ -93,7 +93,7 @@ public class ExcelWriterTest {
 
         // Excel Writer
         LOGGER.info("test_write_xlsx_single_sheet :: Writing to file - {}", filepath_output_file);
-        ExcelWriter gew = new ExcelWriter(filepath_output_file);
+        SpreadsheetWriter gew = new SpreadsheetWriter(filepath_output_file);
 
         // Employees
         List<Employee> employees = new ArrayList<Employee>();
