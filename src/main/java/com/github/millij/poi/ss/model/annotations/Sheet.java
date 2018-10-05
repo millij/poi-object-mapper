@@ -1,4 +1,4 @@
-package com.github.millij.poi.ss.model;
+package com.github.millij.poi.ss.model.annotations;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;

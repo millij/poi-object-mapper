@@ -1,7 +1,7 @@
 package com.github.millij.bean;
 
-import com.github.millij.poi.ss.model.SheetColumn;
-import com.github.millij.poi.ss.model.Sheet;
+import com.github.millij.poi.ss.model.annotations.Sheet;
+import com.github.millij.poi.ss.model.annotations.SheetColumn;
 
 
 @Sheet("Companies")

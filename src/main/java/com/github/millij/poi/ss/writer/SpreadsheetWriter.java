@@ -20,10 +20,11 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.millij.poi.ss.model.Sheet;
+import com.github.millij.poi.ss.model.annotations.Sheet;
 import com.github.millij.poi.util.Spreadsheet;
 
 
+@Deprecated
 public class SpreadsheetWriter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SpreadsheetWriter.class);
