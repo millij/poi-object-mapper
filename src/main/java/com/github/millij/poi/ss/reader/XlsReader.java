@@ -69,6 +69,10 @@ public class XlsReader extends WorkbookReader {
             while (rows.hasNext()) {
                 // Process Row Data
                 HSSFRow row = (HSSFRow) rows.next();
+                if (row.getRowNum() == 0) {
+                    continue; // Skip Header row
+                }
+
                 Map<String, Object> rowDataMap = this.extractRowDataAsMap(row, columnHeaderMap);
                 if (rowDataMap == null || rowDataMap.isEmpty()) {
                     continue;
