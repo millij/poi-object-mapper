@@ -1,12 +1,22 @@
 language: java
 
 env:
-- COVERALLS_REPO_TOKEN=4CaLAImlPNsl2mLKmrZZNkb59GR2hROro
+- CODECOV_TOKEN="6f3f7d4d-3eab-4605-b631-294c4fb7a58f"
+# - COVERALLS_REPO_TOKEN=4CaLAImlPNsl2mLKmrZZNkb59GR2hROro
 
+before_script:
+- chmod +x gradlew
+
+
+script:
+- ./gradlew clean check
 
 
 after_success:
-- ./gradlew jacocoTestReport coveralls
+- ./gradlew jacocoTestReport
+- bash <(curl -s https://codecov.io/bash)
+# - ./gradlew coveralls
+
 
 after_failure:
 - ./gradlew clean check --debug
