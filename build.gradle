@@ -26,7 +26,7 @@ dependencies {
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.3'
 
     // Apache POI
-    compile group: 'org.apache.poi', name: 'poi-ooxml', version: '3.14'
+    compile group: 'org.apache.poi', name: 'poi-ooxml', version: '3.17'
 
 
     // Test compile

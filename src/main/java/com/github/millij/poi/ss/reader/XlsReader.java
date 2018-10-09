@@ -118,19 +118,19 @@ public class XlsReader extends WorkbookReader {
             int cellCol = cell.getColumnIndex();
 
             // Process cell value
-            switch (cell.getCellType()) {
-                case HSSFCell.CELL_TYPE_STRING:
+            switch (cell.getCellTypeEnum()) {
+                case STRING:
                     cellHeaderMap.put(cellCol, cell.getStringCellValue());
                     break;
-                case HSSFCell.CELL_TYPE_NUMERIC:
+                case NUMERIC:
                     cellHeaderMap.put(cellCol, String.valueOf(cell.getNumericCellValue()));
                     break;
-                case HSSFCell.CELL_TYPE_BOOLEAN:
+                case BOOLEAN:
                     cellHeaderMap.put(cellCol, String.valueOf(cell.getBooleanCellValue()));
                     break;
-                case HSSFCell.CELL_TYPE_FORMULA:
-                case HSSFCell.CELL_TYPE_BLANK:
-                case HSSFCell.CELL_TYPE_ERROR:
+                case FORMULA:
+                case BLANK:
+                case ERROR:
                     break;
                 default:
                     break;
@@ -156,19 +156,19 @@ public class XlsReader extends WorkbookReader {
             String cellColName = columnHeaderMap.get(cellCol);
 
             // Process cell value
-            switch (cell.getCellType()) {
-                case HSSFCell.CELL_TYPE_STRING:
+            switch (cell.getCellTypeEnum()) {
+                case STRING:
                     rowDataMap.put(cellColName, cell.getStringCellValue());
                     break;
-                case HSSFCell.CELL_TYPE_NUMERIC:
+                case NUMERIC:
                     rowDataMap.put(cellColName, cell.getNumericCellValue());
                     break;
-                case HSSFCell.CELL_TYPE_BOOLEAN:
+                case BOOLEAN:
                     rowDataMap.put(cellColName, cell.getBooleanCellValue());
                     break;
-                case HSSFCell.CELL_TYPE_FORMULA:
-                case HSSFCell.CELL_TYPE_BLANK:
-                case HSSFCell.CELL_TYPE_ERROR:
+                case FORMULA:
+                case BLANK:
+                case ERROR:
                     break;
                 default:
                     break;
