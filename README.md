@@ -6,14 +6,14 @@
 
 **poi-object-mapper** is a wrapper java library for [Apache POI](https://poi.apache.org/) (Apache POI provides java API to read Microsoft Office Formats). POI APIs are very low level giving acess to all the internals of the file formats.
 
-The aim of this project is to provide a easy to use highlevel APIs to read the Office file formats by wrapping the POI APIs. In simple terms, the wrapper APIs would look similar to the [Jackson Project for XML and JSON](https://github.com/FasterXML/jackson), where the data can be mapped to a JAVA Bean and through the mapper APIs, the file data can directly be read as java objects.
+The aim of this project is to provide easy to use highlevel APIs to read the Office file formats by wrapping the POI APIs. In simple terms, the wrapper APIs would look similar to the [Jackson Project for XML and JSON](https://github.com/FasterXML/jackson), where the data can be mapped to a JAVA Bean and through the mapper APIs, the file data can directly be read as java objects.
 
-*Note that the current version of the library supports only spreadsheets (Excel files).*
+*- Note that the current version of the library supports only  **spreadsheets**  (Excel files).*
 
 
 ## Include
 
-This library is not yet available in the Maven Central. For it hast to be installed manually. Please check the [releases](https://github.com/millij/poi-object-mapper/releases) page for change log and versions.
+This library is not yet available in the Maven Central. For now it hast to be installed manually. Please check the [releases](https://github.com/millij/poi-object-mapper/releases) page for change log and versions.
 
 #### Dependencies
 
@@ -32,7 +32,7 @@ Consider the below sample spreadsheet, where data of employees is present.
 | Guiliano Carlini  |       | MALE   | 1.78         | Palo Alto, CA – 43234              |
 
 ##### Mapping Rows to a Java Bean
-Create a java bean and maps its properties to the columns using the `@SheetColumn` annotation. The `@SheetColumn` annotation can be declared on the `Field`, as well as its `Accessor Methods`. Pick any one of them to configure the mapped `Column` as per convenience.    
+Create a java bean and map its properties to the columns using the `@SheetColumn` annotation. The `@SheetColumn` annotation can be declared on the `Field`, as well as its `Accessor Methods`. Pick any one of them to configure the mapped `Column` as per convenience.    
 
 ```java
 @Sheet
@@ -52,9 +52,9 @@ public class Employee {
 
 ##### Reading Rows as Java Objects
 
-Once a mapping Java Bean is ready use a `Reader` to read the file rows as the objects of the bean. Use `XlsReader` for `.xls` files and `XlsxReader` for `.xlsx` files.
+Once a mapped Java Bean is ready, use a `Reader` to read the file rows as objects. Use `XlsReader` for `.xls` files and `XlsxReader` for `.xlsx` files.
 
-Reading spreadsheet rows as objects..
+Reading spreadsheet rows as objects ..
 
 ```java
     ...
@@ -94,7 +94,3 @@ Reading spreadsheet rows as objects..
 - Mapping `Date` files through a `DateFormat` is not supported yet.
 - Reading `Formula` cells is not supported yet.
 
-
-
-
- 
