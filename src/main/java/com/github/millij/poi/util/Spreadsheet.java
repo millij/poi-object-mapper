@@ -27,10 +27,6 @@ public final class Spreadsheet {
     }
 
 
-    public final static String EXTN_XLS = "xls";
-    public final static String EXTN_XLSX = "xlsx";
-
-
     // Utilities
     // ------------------------------------------------------------------------
 

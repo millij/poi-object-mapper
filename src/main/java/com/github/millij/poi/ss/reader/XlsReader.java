@@ -1,13 +1,10 @@
 package com.github.millij.poi.ss.reader;
 
-import java.io.File;
-import java.io.FileInputStream;
+import static com.github.millij.poi.util.Beans.isValidTypeReference;
+
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.poi.hssf.usermodel.HSSFCell;
@@ -20,7 +17,8 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.millij.poi.ExcelReadException;
+import com.github.millij.poi.SpreadsheetReadException;
+import com.github.millij.poi.ss.handler.RowListener;
 import com.github.millij.poi.util.Spreadsheet;
 
 
@@ -29,7 +27,7 @@ import com.github.millij.poi.util.Spreadsheet;
  * 
  * @see XlsxReader
  */
-public class XlsReader extends WorkbookReader {
+public class XlsReader extends AbstractSpreadsheetReader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(XlsReader.class);
 
@@ -37,7 +35,7 @@ public class XlsReader extends WorkbookReader {
     // Constructor
 
     public XlsReader() {
-        super(WORKBOOK_XLS, false);
+        super();
     }
 
 
@@ -45,65 +43,98 @@ public class XlsReader extends WorkbookReader {
     // ------------------------------------------------------------------------
 
     @Override
-    public <EB> List<EB> read(File file, int sheetNo, Class<EB> beanClz) throws ExcelReadException {
+    public <T> void read(Class<T> beanClz, InputStream is, RowListener<T> listener) throws SpreadsheetReadException {
         // Sanity checks
-        if (beanClz == null) {
-            throw new IllegalArgumentException("XlsReader :: Bean class type should not be null");
+        if (!isValidTypeReference(beanClz)) {
+            throw new IllegalArgumentException("XlsReader :: Invalid bean type passed !");
         }
 
-        final List<EB> sheetBeans = new ArrayList<EB>();
         try {
-            InputStream ExcelFileToRead = new FileInputStream(file);
-            HSSFWorkbook wb = new HSSFWorkbook(ExcelFileToRead);
+            final HSSFWorkbook wb = new HSSFWorkbook(is);
+            final int sheetCount = wb.getNumberOfSheets();
+            LOGGER.debug("Total no. of sheets found in HSSFWorkbook : #{}", sheetCount);
 
-            HSSFSheet sheet = wb.getSheetAt(sheetNo);
-            HSSFRow headerRow = sheet.getRow(0);
+            // Iterate over sheets
+            for (int i = 0; i < sheetCount; i++) {
+                final HSSFSheet sheet = wb.getSheetAt(i);
+                LOGGER.debug("Processing HSSFSheet at No. : {}", i);
 
-            // Header column - name mapping
-            Map<Integer, String> columnHeaderMap = this.extractColumnHeaderMap(headerRow);
-            
-            // Bean Properties - column name mapping
-            Map<String, String> cellPropMapping = Spreadsheet.getColumnToPropertyMap(beanClz);
-
-            Iterator<Row> rows = sheet.rowIterator();
-            while (rows.hasNext()) {
-                // Process Row Data
-                HSSFRow row = (HSSFRow) rows.next();
-                if (row.getRowNum() == 0) {
-                    continue; // Skip Header row
-                }
-
-                Map<String, Object> rowDataMap = this.extractRowDataAsMap(row, columnHeaderMap);
-                if (rowDataMap == null || rowDataMap.isEmpty()) {
-                    continue;
-                }
-
-                // Row data as Bean
-                EB rowBean = Spreadsheet.rowAsBean(beanClz, cellPropMapping, rowDataMap);
-                if (rowBean != null) {
-                    sheetBeans.add(rowBean);
-                }
+                // Process Sheet
+                this.processSheet(beanClz, sheet, 0, listener);
             }
 
             // Close workbook
             wb.close();
+        } catch (Exception ex) {
+            String errMsg = String.format("Error reading HSSFSheet, to %s : %s", beanClz, ex.getMessage());
+            LOGGER.error(errMsg, ex);
+            throw new SpreadsheetReadException(errMsg, ex);
+        }
+        
+    }
 
-            return Collections.unmodifiableList(sheetBeans);
+    @Override
+    public <T> void read(Class<T> beanClz, InputStream is, int sheetNo, RowListener<T> listener)
+            throws SpreadsheetReadException {
+        // Sanity checks
+        if (!isValidTypeReference(beanClz)) {
+            throw new IllegalArgumentException("XlsReader :: Invalid bean type passed !");
+        }
+
+        try {
+            HSSFWorkbook wb = new HSSFWorkbook(is);
+            final HSSFSheet sheet = wb.getSheetAt(sheetNo);
+
+            // Process Sheet
+            this.processSheet(beanClz, sheet, 0, listener);
+
+            // Close workbook
+            wb.close();
 
         } catch (Exception ex) {
             String errMsg = String.format("Error reading sheet %d, to %s : %s", sheetNo, beanClz, ex.getMessage());
             LOGGER.error(errMsg, ex);
-            throw new ExcelReadException(errMsg, ex);
+            throw new SpreadsheetReadException(errMsg, ex);
         }
-
     }
 
+
+
+    // Sheet Process
+    
+    protected <T> void processSheet(Class<T> beanClz, HSSFSheet sheet, int headerRowNo, RowListener<T> eventHandler) {
+        // Header column - name mapping
+        HSSFRow headerRow = sheet.getRow(headerRowNo);
+        Map<Integer, String> headerMap = this.extractCellHeaderMap(headerRow);
+        
+        // Bean Properties - column name mapping
+        Map<String, String> cellPropMapping = Spreadsheet.getColumnToPropertyMap(beanClz);
+
+        Iterator<Row> rows = sheet.rowIterator();
+        while (rows.hasNext()) {
+            // Process Row Data
+            HSSFRow row = (HSSFRow) rows.next();
+            int rowNum = row.getRowNum();
+            if (rowNum == 0) {
+                continue; // Skip Header row
+            }
+
+            Map<String, Object> rowDataMap = this.extractRowDataAsMap(row, headerMap);
+            if (rowDataMap == null || rowDataMap.isEmpty()) {
+                continue;
+            }
+
+            // Row data as Bean
+            T rowBean = Spreadsheet.rowAsBean(beanClz, cellPropMapping, rowDataMap);
+            eventHandler.row(rowNum, rowBean);
+        }
+    }
 
 
     // Private Methods
     // ------------------------------------------------------------------------
 
-    private Map<Integer, String> extractColumnHeaderMap(HSSFRow headerRow) {
+    private Map<Integer, String> extractCellHeaderMap(HSSFRow headerRow) {
         // Sanity checks
         if (headerRow == null) {
             return new HashMap<Integer, String>();
@@ -177,6 +208,7 @@ public class XlsReader extends WorkbookReader {
 
         return rowDataMap;
     }
+
 
 
 
