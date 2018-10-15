@@ -16,30 +16,8 @@ public abstract class AbstractSheetContentsHandler implements SheetContentsHandl
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSheetContentsHandler.class);
 
-    private final int noOfRowsToSkip;
-
-    private final int headerRow;
-    private final boolean verifyHeader;
-
-    private final Map<String, String> headerCellMap;
-
     private int currentRow = 0;
     private Map<String, Object> currentRowObj;
-
-
-    // Constructors
-    // ------------------------------------------------------------------------
-
-    AbstractSheetContentsHandler(int noOfRowsToSkip, int headerRow, boolean verifyHeader) {
-        super();
-
-        this.noOfRowsToSkip = noOfRowsToSkip;
-
-        this.headerRow = headerRow;
-        this.verifyHeader = verifyHeader;
-
-        this.headerCellMap = new HashMap<String, String>();
-    }
 
 
     // Methods
@@ -63,25 +41,11 @@ public abstract class AbstractSheetContentsHandler implements SheetContentsHandl
 
         // Handle row
         this.currentRow = rowNum;
-        if (rowNum == headerRow || rowNum < noOfRowsToSkip) {
-            return;
-        }
-
-        // Init Row Object
         this.currentRowObj = new HashMap<String, Object>();
     }
 
     @Override
     public void endRow(int rowNum) {
-        if (this.currentRow == this.headerRow  && verifyHeader) {
-            this.verifySheetHeader();
-            return;
-        }
-
-        if (currentRow < noOfRowsToSkip) {
-            return;
-        }
-
         // Callback
         this.afterRowEnd(rowNum, new HashMap<String, Object>(currentRowObj));
     }
@@ -89,10 +53,6 @@ public abstract class AbstractSheetContentsHandler implements SheetContentsHandl
     @Override
     public void cell(String cellRef, String cellVal, XSSFComment comment) {
         // Sanity Checks
-        if (this.currentRow < noOfRowsToSkip) {
-            return;
-        }
-
         if (StringUtils.isEmpty(cellRef)) {
             LOGGER.error("Row[#] {} : Cell reference is empty - {}", currentRow, cellRef);
             return;
@@ -103,18 +63,12 @@ public abstract class AbstractSheetContentsHandler implements SheetContentsHandl
             return;
         }
 
-        // Handle the Header Row
-        if (this.verifyHeader && this.headerRow == this.currentRow) {
-            this.saveHeaderCellValue(cellRef, cellVal);
-        } else {
-            // ColumnName
-            String cellColRef = Spreadsheet.getCellColumnReference(cellRef);
-            String cellColName = headerCellMap.get(cellColRef);
+        // CellColRef
+        String cellColRef = Spreadsheet.getCellColumnReference(cellRef);
 
-            // Set the CellValue in the Map
-            LOGGER.debug("cell - Saving Column value : {} - {}", cellColName, cellVal);
-            currentRowObj.put(cellColName, cellVal);
-        }
+        // Set the CellValue in the Map
+        LOGGER.debug("cell - Saving Column value : {} - {}", cellColRef, cellVal);
+        currentRowObj.put(cellColRef, cellVal);
     }
 
     @Override
@@ -122,20 +76,5 @@ public abstract class AbstractSheetContentsHandler implements SheetContentsHandl
         // TODO Auto-generated method stub
 
     }
-
-
-    // Protected Methods
-    // ------------------------------------------------------------------------
-
-    protected void verifySheetHeader() {
-        // TODO Auto-generated method stub
-    }
-
-    protected void saveHeaderCellValue(String cellRef, String cellValue) {
-        String cellColRef = Spreadsheet.getCellColumnReference(cellRef);
-        headerCellMap.put(cellColRef, cellValue);
-    }
-
-
 
 }
