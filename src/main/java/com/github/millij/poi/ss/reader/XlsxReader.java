@@ -1,6 +1,6 @@
 package com.github.millij.poi.ss.reader;
 
-import static com.github.millij.poi.util.Beans.isValidTypeReference;
+import static com.github.millij.poi.util.Beans.isInstantiableType;
 
 import java.io.InputStream;
 
@@ -48,7 +48,7 @@ public class XlsxReader extends AbstractSpreadsheetReader {
     public <T> void read(Class<T> beanClz, InputStream is, RowListener<T> listener)
             throws SpreadsheetReadException {
         // Sanity checks
-        if (!isValidTypeReference(beanClz)) {
+        if (!isInstantiableType(beanClz)) {
             throw new IllegalArgumentException("XlsxReader :: Invalid bean type passed !");
         }
 
@@ -91,7 +91,7 @@ public class XlsxReader extends AbstractSpreadsheetReader {
     public <T> void read(Class<T> beanClz, InputStream is, int sheetNo, RowListener<T> listener)
             throws SpreadsheetReadException {
         // Sanity checks
-        if (!isValidTypeReference(beanClz)) {
+        if (!isInstantiableType(beanClz)) {
             throw new IllegalArgumentException("XlsxReader :: Invalid bean type passed !");
         }
 

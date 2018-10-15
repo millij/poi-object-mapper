@@ -3,6 +3,7 @@ package com.github.millij.poi.util;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,29 @@ public final class Beans {
         return cellValue;
     }
 
+
+    /**
+     * Check whether a class is instantiable of not.
+     * 
+     * @param clz
+     * @return false if the class in primitive/abstract/interface/array
+     */
+    public static boolean isInstantiableType(Class<?> clz) {
+        // Sanity checks
+        if (clz == null) {
+            return false;
+        }
+
+        int modifiers = clz.getModifiers();
+        LOGGER.debug("Modifiers of Class : {} - {}", clz, modifiers);
+
+        // Primitive / Abstract / Interface / Array
+        if (clz.isPrimitive() || Modifier.isAbstract(modifiers) || clz.isInterface() || clz.isArray()) {
+            return false;
+        }
+
+        return true;
+    }
 
 
 }
