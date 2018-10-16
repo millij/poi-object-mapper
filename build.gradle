@@ -1,8 +1,9 @@
 
 apply plugin: 'java'
-apply plugin: 'maven'
 apply plugin: 'jacoco'
 
+apply plugin: 'maven'
+apply plugin: 'signing'
 
 repositories {
     mavenLocal()
@@ -38,6 +39,13 @@ dependencies {
 
 }
 
+// Test
+// ----------------------------------------------------------------------------
+
+test {
+    systemProperties 'property': 'value'
+}
+
 
 // Java
 // ----------------------------------------------------------------------------
@@ -47,6 +55,11 @@ tasks.withType(JavaCompile) {
     targetCompatibility = 1.7
 }
 
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
 task sourcesJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.allSource
@@ -54,17 +67,17 @@ task sourcesJar(type: Jar) {
 
 artifacts {
     archives jar
+    archives javadocJar
     archives sourcesJar
 }
 
 
+// Signing
 
-// Test
-// ----------------------------------------------------------------------------
-
-test {
-    systemProperties 'property': 'value'
+signing {
+    sign configurations.archives
 }
+
 
 
 // JaCoCo
@@ -82,4 +95,58 @@ jacocoTestReport.dependsOn test
 check.dependsOn jacocoTestReport
 
 
+// CheckStyle
+// ----------------------------------------------------------------------------
 
+
+
+// Release
+// ----------------------------------------------------------------------------
+
+uploadArchives {
+
+    repositories {
+        mavenDeployer {
+            beforeDeployment { 
+                MavenDeployment deployment -> signing.signPom(deployment) 
+            }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            pom.project {
+                name 'Object Mapper for Apache POI'
+                packaging 'jar'
+                description 'Objects mapper for Office formats - Excel files, Spreadsheets, etc. '
+                url 'https://millij.github.io/poi-object-mapper/'
+
+                scm {
+                    url 'https://github.com/millij/poi-object-mapper.git'
+                    connection 'scm:git:https://github.com/millij/poi-object-mapper.git'
+                    developerConnection 'scm:git:https://github.com/millij/poi-object-mapper.git'
+                }
+
+                licenses {
+                    license {
+                        name 'MIT License'
+                        url 'https://opensource.org/licenses/mit-license.php'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'millij'
+                        name 'Gowri Shankar'
+                        email 'gowrishankar.milli@gmail.com'
+                    }
+                }
+            }
+        }
+
+    }
+}
