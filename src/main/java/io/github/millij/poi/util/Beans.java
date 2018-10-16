@@ -39,12 +39,16 @@ public final class Beans {
     /**
      * Given a Bean and a field of it, returns the value of the field converted to String.
      * 
+     * <ul>
      * <li> <code>null</code> is returned if the value of the field itself is null.</li> 
      * <li> In the case of an Object type, its String representation will be returned.</li>
+     * </ul>
      * 
      * @param beanObj bean of which the field value to be extracted.
      * @param fieldName Name of the property/field of the object.
      * @return the field value converted to String.
+     * 
+     * @throws Exception if the bean or the fields accessor methods are not accessible.
      */
     public static String getFieldValueAsString(Object beanObj, String fieldName) throws Exception {
         // Property Descriptor
@@ -61,7 +65,7 @@ public final class Beans {
     /**
      * Check whether a class is instantiable of not.
      * 
-     * @param clz
+     * @param clz the {@link Class} which needs to verified.
      * @return false if the class in primitive/abstract/interface/array
      */
     public static boolean isInstantiableType(Class<?> clz) {
