@@ -57,12 +57,13 @@ public class XlsxReader extends AbstractSpreadsheetReader {
 
             // XSSF Reader
             XSSFReader xssfReader = new XSSFReader(opcPkg);
-            StylesTable styles = xssfReader.getStylesTable();
 
             // Content Handler
+            StylesTable styles = xssfReader.getStylesTable();
             ReadOnlySharedStringsTable ssTable = new ReadOnlySharedStringsTable(opcPkg);
-            SheetContentsHandler sheetContentsHandler = new RowContentsHandler<T>(beanClz, listener, 0);
-            ContentHandler handler = new XSSFSheetXMLHandler(styles, ssTable, sheetContentsHandler, true);
+            SheetContentsHandler sheetHandler = new RowContentsHandler<T>(beanClz, listener, 0);
+
+            ContentHandler handler = new XSSFSheetXMLHandler(styles, ssTable, sheetHandler, true);
 
             // XML Reader
             XMLReader xmlParser = SAXHelper.newXMLReader();
@@ -100,12 +101,13 @@ public class XlsxReader extends AbstractSpreadsheetReader {
 
             // XSSF Reader
             XSSFReader xssfReader = new XSSFReader(opcPkg);
-            StylesTable styles = xssfReader.getStylesTable();
 
             // Content Handler
+            StylesTable styles = xssfReader.getStylesTable();
             ReadOnlySharedStringsTable ssTable = new ReadOnlySharedStringsTable(opcPkg);
-            SheetContentsHandler sheetContentsHandler = new RowContentsHandler<T>(beanClz, listener, 0);
-            ContentHandler handler = new XSSFSheetXMLHandler(styles, ssTable, sheetContentsHandler, true);
+            SheetContentsHandler sheetHandler = new RowContentsHandler<T>(beanClz, listener, 0);
+
+            ContentHandler handler = new XSSFSheetXMLHandler(styles, ssTable, sheetHandler, true);
 
             // XML Reader
             XMLReader xmlParser = SAXHelper.newXMLReader();

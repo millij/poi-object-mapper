@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.github.millij.poi.util.Spreadsheet;
 
 
-public abstract class AbstractSheetContentsHandler implements SheetContentsHandler {
+abstract class AbstractSheetContentsHandler implements SheetContentsHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSheetContentsHandler.class);
 

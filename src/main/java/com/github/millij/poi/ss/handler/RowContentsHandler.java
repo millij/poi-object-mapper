@@ -1,10 +1,8 @@
 package com.github.millij.poi.ss.handler;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,10 +15,9 @@ public class RowContentsHandler<T> extends AbstractSheetContentsHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(RowContentsHandler.class);
 
     private final Class<T> beanClz;
-    private final Map<String, String> beanPropertyMap;
 
     private final int headerRow;
-    private final Map<String, String> headerCellMap;
+    private final Map<String, String> cellPropertyMap;
 
     private final RowListener<T> rowListener;
 
@@ -36,10 +33,9 @@ public class RowContentsHandler<T> extends AbstractSheetContentsHandler {
         super();
 
         this.beanClz = beanClz;
-        this.beanPropertyMap = Spreadsheet.getColumnToPropertyMap(beanClz);
 
         this.headerRow = headerRow;
-        this.headerCellMap = new HashMap<String, String>();
+        this.cellPropertyMap = new HashMap<String, String>();
 
         this.rowListener = rowListener;
     }
@@ -69,38 +65,18 @@ public class RowContentsHandler<T> extends AbstractSheetContentsHandler {
 
         if (rowNum == headerRow) {
             final Map<String, String> headerMap = this.prepareHeaderMap(rowNum, rowDataMap);
-            headerCellMap.putAll(headerMap);
+            cellPropertyMap.putAll(headerMap);
             return;
         }
 
+        // Row As Bean
+        T rowBean = Spreadsheet.rowAsBean(beanClz, cellPropertyMap, rowDataMap);
+
+        // Row Callback
         try {
-            // Create new Instance
-            T rowObj = beanClz.newInstance();
-
-            // Fill in the datat
-            for (String colRef : rowDataMap.keySet()) {
-                String cellColName = headerCellMap.get(colRef);
-                Object cellValue = rowDataMap.get(colRef);
-
-                String propName = this.beanPropertyMap.get(cellColName);
-                if (StringUtils.isEmpty(propName)) {
-                    LOGGER.debug("Row[#] {} : No mathching property found for column[name] - {}", rowNum, colRef);
-                    return;
-                }
-
-                // Set the property value in the current row object bean
-                try {
-                    BeanUtils.setProperty(rowObj, propName, cellValue);
-                } catch (IllegalAccessException | InvocationTargetException ex) {
-                    String errMsg = String.format("Failed to set bean property - %s, value - %s", propName, cellValue);
-                    LOGGER.error(errMsg, ex);
-                }
-            }
-
-            // Row Callback
-            rowListener.row(rowNum, rowObj);
+            rowListener.row(rowNum, rowBean);
         } catch (Exception ex) {
-            String errMsg = String.format("Error while creating bean - %s, from - %s", beanClz, rowDataMap);
+            String errMsg = String.format("Error calling listener callback  row - %d, bean - %s", rowNum, rowBean);
             LOGGER.error(errMsg, ex);
         }
     }
@@ -116,11 +92,14 @@ public class RowContentsHandler<T> extends AbstractSheetContentsHandler {
             throw new RuntimeException(errMsg);
         }
 
+        final Map<String, String> colToBeanPropMap = Spreadsheet.getColumnToPropertyMap(beanClz);
+
         final Map<String, String> headerMap = new HashMap<String, String>();
         for (String collRef : rowDataMap.keySet()) {
-            Object colName = rowDataMap.get(collRef);
-            if (colName != null) {
-                headerMap.put(collRef, String.valueOf(colName));
+            String colName = String.valueOf(rowDataMap.get(collRef));
+            String propName = colToBeanPropMap.get(colName);
+            if (StringUtils.isNotEmpty(propName)) {
+                headerMap.put(collRef, String.valueOf(propName));
             }
         }
 

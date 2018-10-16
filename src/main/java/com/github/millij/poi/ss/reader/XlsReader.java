@@ -90,7 +90,6 @@ public class XlsReader extends AbstractSpreadsheetReader {
 
             // Close workbook
             wb.close();
-
         } catch (Exception ex) {
             String errMsg = String.format("Error reading sheet %d, to %s : %s", sheetNo, beanClz, ex.getMessage());
             LOGGER.error(errMsg, ex);
