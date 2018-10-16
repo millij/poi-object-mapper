@@ -9,8 +9,8 @@ repositories {
     mavenCentral()
 }
 
-group = 'com.github.millij'
-version = '0.3.0-SNAPSHOT'
+group = 'io.github.millij'
+version = '1.0.0-SNAPSHOT'
 
 
 dependencies {
