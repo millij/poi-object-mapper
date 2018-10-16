@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,11 +114,6 @@ public final class Spreadsheet {
     // ------------------------------------------------------------------------
 
     public static Map<String, String> asRowDataMap(Object beanObj, List<String> colHeaders) throws Exception {
-        // Sanity checks
-        if (beanObj == null || CollectionUtils.isEmpty(colHeaders)) {
-            return new HashMap<>();
-        }
-
         // Excel Bean Type
         final Class<?> beanType = beanObj.getClass();
 
@@ -170,10 +164,6 @@ public final class Spreadsheet {
 
     public static <T> T rowAsBean(Class<T> beanClz, Map<String, String> cellProperies, Map<String, Object> cellValues) {
         // Sanity checks
-        if (beanClz == null) {
-            throw new IllegalArgumentException("rowAsBean : invalid bean type - bean class is null");
-        }
-
         if (cellValues == null || cellProperies == null) {
             return null;
         }
