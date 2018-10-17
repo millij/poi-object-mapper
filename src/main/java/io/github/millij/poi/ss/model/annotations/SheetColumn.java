@@ -21,6 +21,8 @@ public @interface SheetColumn {
 
     /**
      * Name of the column to map the annotated property with.
+     * 
+     * @return column name/header.
      */
     String value() default "";
 
@@ -29,6 +31,8 @@ public @interface SheetColumn {
      * non-null values for the field.
      * 
      * default is <code>true</code>. i.e., null values are allowed.
+     * 
+     * @return <code>true</code> if the annotated field is allowed <code>null</code> as value.
      */
     boolean nullable() default true;
 
