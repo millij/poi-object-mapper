@@ -11,15 +11,16 @@ cache:
     - $HOME/.gradle/nodejs/
     - node_modules
 
+
+before_install:
+  - chmod +x gradlew
+
 install:
   - ./gradlew clean
 
 
-before_script:
-  - chmod +x gradlew
-
 script:
-  - ./gradlew check build --continue
+  - ./gradlew check build -x signArchives -x uploadArchives
 
 
 before_cache:
