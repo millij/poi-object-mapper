@@ -21,7 +21,7 @@ This library is available in [Maven Central](https://mvnrepository.com/artifact/
 ```
 <dependency>
     <groupId>io.github.millij</groupId>
-    <artifactId>pom-object-mapper</artifactId>
+    <artifactId>poi-object-mapper</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
@@ -105,7 +105,7 @@ Reading spreadsheet rows as objects ..
 
 ## Issues
 
-The known issues are already listed under [Issues Section](https://github.com/millij/poi-object-mapper/releases).
+The known issues are already listed under [Issues Section](https://github.com/millij/poi-object-mapper/issues).
 
 Please add there your bugs findings, feature requests, enhancements etc. 
 
