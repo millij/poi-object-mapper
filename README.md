@@ -21,7 +21,7 @@ This library is available in [Maven Central](https://mvnrepository.com/artifact/
 ```
 <dependency>
     <groupId>io.github.millij</groupId>
-    <artifactId>pom-object-mapper</artifactId>
+    <artifactId>poi-object-mapper</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
