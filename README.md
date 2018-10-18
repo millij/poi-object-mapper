@@ -105,7 +105,7 @@ Reading spreadsheet rows as objects ..
 
 ## Issues
 
-The known issues are already listed under [Issues Section](https://github.com/millij/poi-object-mapper/releases).
+The known issues are already listed under [Issues Section](https://github.com/millij/poi-object-mapper/issues).
 
 Please add there your bugs findings, feature requests, enhancements etc. 
 
