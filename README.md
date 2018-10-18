@@ -1,3 +1,4 @@
+
 [![Build Status](https://travis-ci.org/millij/poi-object-mapper.svg?branch=master)](https://travis-ci.org/millij/poi-object-mapper)
 [![codecov](https://codecov.io/gh/millij/poi-object-mapper/branch/master/graph/badge.svg)](https://codecov.io/gh/millij/poi-object-mapper)
 
@@ -13,7 +14,19 @@ The aim of this project is to provide easy to use highlevel APIs to read the Off
 
 ## Include
 
-This library is not yet available in the Maven Central. For now it hast to be installed manually. Please check the [releases](https://github.com/millij/poi-object-mapper/releases) page for change log and versions.
+This library is available in [Maven Central](https://mvnrepository.com/artifact/io.github.millij/poi-object-mapper). 
+
+`pom.xml` entry details..
+
+```
+<dependency>
+    <groupId>io.github.millij</groupId>
+    <artifactId>poi-object-mapper</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+To install manually, please check the [releases](https://github.com/millij/poi-object-mapper/releases) page for available versions and  change log.
 
 #### Dependencies
 
@@ -23,6 +36,7 @@ The current implementation uses **POI version 3.17**.
 ## Usage
 
 ### Spreadsheets (Excel)
+
 Consider the below sample spreadsheet, where data of employees is present.
 
 | Name              | Age   | Gender | Height (mts) | Address                            |
@@ -31,7 +45,9 @@ Consider the below sample spreadsheet, where data of employees is present.
 | John Doe          | 45    | MALE   | 2.1          |                                    |
 | Guiliano Carlini  |       | MALE   | 1.78         | Palo Alto, CA – 43234              |
 
+
 ##### Mapping Rows to a Java Bean
+
 Create a java bean and map its properties to the columns using the `@SheetColumn` annotation. The `@SheetColumn` annotation can be declared on the `Field`, as well as its `Accessor Methods`. Pick any one of them to configure the mapped `Column` as per convenience.    
 
 ```java
@@ -60,7 +76,7 @@ Reading spreadsheet rows as objects ..
     ...
     final File xlsxFile = new File("<path_to_file>");
     final XlsReader reader = new XlsReader();
-    List<Employee> employees = reader.read(xlsxFile, Employee.class);
+    List<Employee> employees = reader.read(Employee.class, xlsxFile);
     ...
 ```
 
@@ -87,10 +103,12 @@ Reading spreadsheet rows as objects ..
 
 
 
-## Known Issues
+## Issues
 
-- Reading Large files is not suggested as stream reading is yet to be supported.
-- XLS file writing is not supported.
-- Mapping `Date` files through a `DateFormat` is not supported yet.
-- Reading `Formula` cells is not supported yet.
+The known issues are already listed under [Issues Section](https://github.com/millij/poi-object-mapper/releases).
+
+Please add there your bugs findings, feature requests, enhancements etc. 
+
+
+
 

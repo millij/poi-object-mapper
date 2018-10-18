@@ -16,30 +16,157 @@ import java.util.List;
 public interface SpreadsheetReader {
 
 
-    // Read with row eventHandler
+    // Read with Custom RowListener
 
-    <T> void read(Class<T> beanClz, File file, RowListener<T> eventHandler) throws SpreadsheetReadException;
+    /**
+     * Reads the spreadsheet file to beans of the given type. This method will attempt to read all
+     * the available sheets of the file and creates the objects of the passed type.
+     * 
+     * <p>
+     * The {@link RowListener} implementation callback gets triggered after reading each Row. Best
+     * Suited for reading Large files in restricted memory environments.
+     * </p>
+     * 
+     * @param <T> The Parameterized bean Class.
+     * @param beanClz The Class type to deserialize the rows data
+     * @param file {@link File} object of the spreadsheet file
+     * @param listener Custom {@link RowListener} implementation for row data callbacks.
+     * 
+     * @throws SpreadsheetReadException an exception is thrown in cases where the file data is not
+     *         readable or row data to bean mapping failed.
+     */
+    <T> void read(Class<T> beanClz, File file, RowListener<T> listener) throws SpreadsheetReadException;
 
-    <T> void read(Class<T> beanClz, InputStream is, RowListener<T> eventHandler) throws SpreadsheetReadException;
+
+    /**
+     * Reads the spreadsheet file to beans of the given type. This method will attempt to read all
+     * the available sheets of the file and creates the objects of the passed type.
+     * 
+     * <p>
+     * The {@link RowListener} implementation callback gets triggered after reading each Row. Best
+     * Suited for reading Large files in restricted memory environments.
+     * </p>
+     * 
+     * @param <T> The Parameterized bean Class.
+     * @param beanClz The Class type to deserialize the rows data
+     * @param is {@link InputStream} of the spreadsheet file
+     * @param listener Custom {@link RowListener} implementation for row data callbacks.
+     * 
+     * @throws SpreadsheetReadException an exception is thrown in cases where the file data is not
+     *         readable or row data to bean mapping failed.
+     */
+    <T> void read(Class<T> beanClz, InputStream is, RowListener<T> listener) throws SpreadsheetReadException;
 
 
-    <T> void read(Class<T> beanClz, File file, int sheetNo, RowListener<T> eventHandler)
+    /**
+     * Reads the spreadsheet file to beans of the given type. Note that only the requested sheet
+     * (sheet numbers are indexed from 0) will be read.
+     * 
+     * <p>
+     * The {@link RowListener} implementation callback gets triggered after reading each Row. Best
+     * Suited for reading Large files in restricted memory environments.
+     * </p>
+     * 
+     * @param <T> The Parameterized bean Class.
+     * @param beanClz The Class type to deserialize the rows data
+     * @param file {@link File} object of the spreadsheet file
+     * @param sheetNo index of the Sheet to be read (index starts from 0)
+     * @param listener Custom {@link RowListener} implementation for row data callbacks.
+     * 
+     * @throws SpreadsheetReadException an exception is thrown in cases where the file data is not
+     *         readable or row data to bean mapping failed.
+     */
+    <T> void read(Class<T> beanClz, File file, int sheetNo, RowListener<T> listener) throws SpreadsheetReadException;
+
+
+    /**
+     * Reads the spreadsheet file to beans of the given type. Note that only the requested sheet
+     * (sheet numbers are indexed from 0) will be read.
+     * 
+     * <p>
+     * The {@link RowListener} implementation callback gets triggered after reading each Row. Best
+     * Suited for reading Large files in restricted memory environments.
+     * </p>
+     * 
+     * @param <T> The Parameterized bean Class.
+     * @param beanClz The Class type to deserialize the rows data
+     * @param is {@link InputStream} of the spreadsheet file
+     * @param sheetNo index of the Sheet to be read (index starts from 0)
+     * @param listener Custom {@link RowListener} implementation for row data callbacks.
+     * 
+     * @throws SpreadsheetReadException an exception is thrown in cases where the file data is not
+     *         readable or row data to bean mapping failed.
+     */
+    <T> void read(Class<T> beanClz, InputStream is, int sheetNo, RowListener<T> listener)
             throws SpreadsheetReadException;
 
-    <T> void read(Class<T> beanClz, InputStream is, int sheetNo, RowListener<T> eventHandler)
-            throws SpreadsheetReadException;
 
 
+    // Read with default RowListener
 
-    // Read all
-
+    /**
+     * Reads the spreadsheet file to beans of the given type. This method will attempt to read all
+     * the available sheets of the file and creates the objects of the passed type.
+     * 
+     * @param <T> The Parameterized bean Class.
+     * @param beanClz The Class type to deserialize the rows data
+     * @param file {@link File} object of the spreadsheet file
+     * 
+     * @return a {@link List} of objects of the parameterized type
+     * 
+     * @throws SpreadsheetReadException an exception is thrown in cases where the file data is not
+     *         readable or row data to bean mapping failed.
+     */
     <T> List<T> read(Class<T> beanClz, File file) throws SpreadsheetReadException;
 
+
+    /**
+     * Reads the spreadsheet file to beans of the given type. This method will attempt to read all
+     * the available sheets of the file and creates the objects of the passed type.
+     * 
+     * @param <T> The Parameterized bean Class.
+     * @param beanClz The Class type to deserialize the rows data
+     * @param is {@link InputStream} of the spreadsheet file
+     * 
+     * @return a {@link List} of objects of the parameterized type
+     * 
+     * @throws SpreadsheetReadException an exception is thrown in cases where the file data is not
+     *         readable or row data to bean mapping failed.
+     */
     <T> List<T> read(Class<T> beanClz, InputStream is) throws SpreadsheetReadException;
 
 
+    /**
+     * Reads the spreadsheet file to beans of the given type. Note that only the requested sheet
+     * (sheet numbers are indexed from 0) will be read.
+     * 
+     * @param <T> The Parameterized bean Class.
+     * @param beanClz beanClz The Class type to deserialize the rows data
+     * @param file file {@link File} object of the spreadsheet file
+     * @param sheetNo index of the Sheet to be read (index starts from 0)
+     * 
+     * @return a {@link List} of objects of the parameterized type
+     * 
+     * @throws SpreadsheetReadException SpreadsheetReadException an exception is thrown in cases
+     *         where the file data is not readable or row data to bean mapping failed.
+     */
     <T> List<T> read(Class<T> beanClz, File file, int sheetNo) throws SpreadsheetReadException;
 
+
+    /**
+     * Reads the spreadsheet file to beans of the given type. Note that only the requested sheet
+     * (sheet numbers are indexed from 0) will be read.
+     * 
+     * @param <T> The Parameterized bean Class.
+     * @param beanClz beanClz The Class type to deserialize the rows data
+     * @param is {@link InputStream} of the spreadsheet file
+     * @param sheetNo index of the Sheet to be read (index starts from 0)
+     * 
+     * @return a {@link List} of objects of the parameterized type
+     * 
+     * @throws SpreadsheetReadException SpreadsheetReadException an exception is thrown in cases
+     *         where the file data is not readable or row data to bean mapping failed.
+     */
     <T> List<T> read(Class<T> beanClz, InputStream is, int sheetNo) throws SpreadsheetReadException;
 
 
