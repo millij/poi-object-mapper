@@ -6,10 +6,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -68,9 +70,14 @@ public final class Spreadsheet {
         }
 
         // Methods
+        List<String> fieldList = Arrays.stream(fields).map(Field::getName).collect(Collectors.toList());
         Method[] methods = beanType.getDeclaredMethods();
+        
         for (Method m : methods) {
             String fieldName = Beans.getFieldName(m);
+            if (!fieldList.contains(fieldName)) {
+            	continue;
+            }
             if (!mapping.containsKey(fieldName)) {
                 mapping.put(fieldName, fieldName);
             }
@@ -113,7 +120,7 @@ public final class Spreadsheet {
     // Read from Bean : as Row Data
     // ------------------------------------------------------------------------
 
-    public static Map<String, String> asRowDataMap(Object beanObj, List<String> colHeaders) throws Exception {
+    public static Map<String, String> asRowDataMap(Object beanObj, Map<String, String> colHeaders) throws Exception {
         // Excel Bean Type
         final Class<?> beanType = beanObj.getClass();
 
@@ -122,40 +129,19 @@ public final class Spreadsheet {
 
         // Fields
         for (Field f : beanType.getDeclaredFields()) {
-            if (!f.isAnnotationPresent(SheetColumn.class)) {
-                continue;
-            }
 
-            String fieldName = f.getName();
+        	String fieldName = f.getName();
 
-            SheetColumn ec = f.getAnnotation(SheetColumn.class);
-            String header = StringUtils.isEmpty(ec.value()) ? fieldName : ec.value();
-            if (!colHeaders.contains(header)) {
-                continue;
-            }
+        	if (!colHeaders.containsKey(fieldName)) {
+        		continue;
+        	}
 
-            rowDataMap.put(header, Beans.getFieldValueAsString(beanObj, fieldName));
-        }
-
-        // Methods
-        for (Method m : beanType.getDeclaredMethods()) {
-            if (!m.isAnnotationPresent(SheetColumn.class)) {
-                continue;
-            }
-
-            String fieldName = Beans.getFieldName(m);
-
-            SheetColumn ec = m.getAnnotation(SheetColumn.class);
-            String header = StringUtils.isEmpty(ec.value()) ? fieldName : ec.value();
-            if (!colHeaders.contains(header)) {
-                continue;
-            }
-
-            rowDataMap.put(header, Beans.getFieldValueAsString(beanObj, fieldName));
+            rowDataMap.put(colHeaders.get(fieldName), Beans.getFieldValueAsString(beanObj, fieldName));
         }
 
         return rowDataMap;
     }
+    
 
 
 
