@@ -30,7 +30,7 @@ To install manually, please check the [releases](https://github.com/millij/poi-o
 
 #### Dependencies
 
-The current implementation uses **POI version 3.17**.
+The current implementation uses **POI version 3.10.1**.
 
 
 ## Usage
