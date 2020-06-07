@@ -63,7 +63,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
             }
 
             // Close workbook
-            wb.close();
+            // wb.close();
         } catch (Exception ex) {
             String errMsg = String.format("Error reading HSSFSheet, to %s : %s", beanClz, ex.getMessage());
             LOGGER.error(errMsg, ex);
@@ -88,7 +88,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
             this.processSheet(beanClz, sheet, 0, listener);
 
             // Close workbook
-            wb.close();
+            // wb.close();
         } catch (Exception ex) {
             String errMsg = String.format("Error reading sheet %d, to %s : %s", sheetNo, beanClz, ex.getMessage());
             LOGGER.error(errMsg, ex);
@@ -147,19 +147,19 @@ public class XlsReader extends AbstractSpreadsheetReader {
             int cellCol = cell.getColumnIndex();
 
             // Process cell value
-            switch (cell.getCellTypeEnum()) {
-                case STRING:
+            switch (cell.getCellType()) {
+                case Cell.CELL_TYPE_STRING:
                     cellHeaderMap.put(cellCol, cell.getStringCellValue());
                     break;
-                case NUMERIC:
+                case Cell.CELL_TYPE_NUMERIC:
                     cellHeaderMap.put(cellCol, String.valueOf(cell.getNumericCellValue()));
                     break;
-                case BOOLEAN:
+                case Cell.CELL_TYPE_BOOLEAN:
                     cellHeaderMap.put(cellCol, String.valueOf(cell.getBooleanCellValue()));
                     break;
-                case FORMULA:
-                case BLANK:
-                case ERROR:
+                case Cell.CELL_TYPE_FORMULA:
+                case Cell.CELL_TYPE_BLANK:
+                case Cell.CELL_TYPE_ERROR:
                     break;
                 default:
                     break;
@@ -185,19 +185,19 @@ public class XlsReader extends AbstractSpreadsheetReader {
             String cellColName = columnHeaderMap.get(cellCol);
 
             // Process cell value
-            switch (cell.getCellTypeEnum()) {
-                case STRING:
+            switch (cell.getCellType()) {
+                case Cell.CELL_TYPE_STRING:
                     rowDataMap.put(cellColName, cell.getStringCellValue());
                     break;
-                case NUMERIC:
+                case Cell.CELL_TYPE_NUMERIC:
                     rowDataMap.put(cellColName, cell.getNumericCellValue());
                     break;
-                case BOOLEAN:
+                case Cell.CELL_TYPE_BOOLEAN:
                     rowDataMap.put(cellColName, cell.getBooleanCellValue());
                     break;
-                case FORMULA:
-                case BLANK:
-                case ERROR:
+                case Cell.CELL_TYPE_FORMULA:
+                case Cell.CELL_TYPE_BLANK:
+                case Cell.CELL_TYPE_ERROR:
                     break;
                 default:
                     break;
