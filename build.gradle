@@ -11,7 +11,7 @@ repositories {
 }
 
 group = 'io.github.millij'
-version = '1.0.0'
+version = '2.0.0-SNAPSHOT'
 
 
 dependencies {
@@ -27,7 +27,8 @@ dependencies {
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.3'
 
     // Apache POI
-    compile group: 'org.apache.poi', name: 'poi-ooxml', version: '3.17'
+    compile group: 'org.apache.poi', name: 'poi', version: '4.0.1'
+    compile group: 'org.apache.poi', name: 'poi-ooxml', version: '4.0.1'
 
 
     // Test compile
@@ -51,8 +52,8 @@ test {
 // ----------------------------------------------------------------------------
 
 tasks.withType(JavaCompile) {
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 }
 
 task javadocJar(type: Jar) {
