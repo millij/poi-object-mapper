@@ -12,6 +12,8 @@ cache:
     - node_modules
 
 
+sudo: required
+
 before_install:
   - chmod +x gradlew
 
