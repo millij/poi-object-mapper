@@ -96,7 +96,7 @@ public class RowContentsHandler<T> extends AbstractSheetContentsHandler {
 
         final Map<String, String> headerMap = new HashMap<String, String>();
         for (String collRef : rowDataMap.keySet()) {
-            String colName = String.valueOf(rowDataMap.get(collRef));
+            String colName = String.valueOf(rowDataMap.get(collRef)).trim();
             String propName = colToBeanPropMap.get(colName);
             if (StringUtils.isNotEmpty(propName)) {
                 headerMap.put(collRef, String.valueOf(propName));
