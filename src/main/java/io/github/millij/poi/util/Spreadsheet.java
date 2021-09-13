@@ -58,6 +58,8 @@ public final class Spreadsheet {
         // Fields
         Field[] fields = beanType.getDeclaredFields();
         for (Field f : fields) {
+            if(f.isAnnotationPresent(NoSheetColumn.class))
+                continue;
             String fieldName = f.getName();
             mapping.put(fieldName, fieldName);
 
