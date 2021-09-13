@@ -72,6 +72,9 @@ public final class Spreadsheet {
         // Methods
         Method[] methods = beanType.getDeclaredMethods();
         for (Method m : methods) {
+            if(m.isAnnotationPresent(NoSheetColumn.class))
+                continue;
+                
             String fieldName = Beans.getFieldName(m);
             if (!mapping.containsKey(fieldName)) {
                 mapping.put(fieldName, fieldName);
