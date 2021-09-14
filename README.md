@@ -63,6 +63,9 @@ public class Employee {
         return name;
     }
     ...
+    //this column will not be presented in the excel sheet.
+    @NoSheetColumn()
+    private String socialSecurityNumber;
 }
 ```
 

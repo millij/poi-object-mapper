@@ -1,6 +1,7 @@
 package io.github.millij.poi.util;
 
 import io.github.millij.poi.ss.model.annotations.SheetColumn;
+import io.github.millij.poi.ss.model.annotations.NoSheetColumn;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -58,6 +59,8 @@ public final class Spreadsheet {
         // Fields
         Field[] fields = beanType.getDeclaredFields();
         for (Field f : fields) {
+            if(!f.isAnnotationPresent(SheetColumn.class))
+                continue;
             String fieldName = f.getName();
             mapping.put(fieldName, fieldName);
 
@@ -70,6 +73,9 @@ public final class Spreadsheet {
         // Methods
         Method[] methods = beanType.getDeclaredMethods();
         for (Method m : methods) {
+            if(!m.isAnnotationPresent(SheetColumn.class))
+                continue;
+                
             String fieldName = Beans.getFieldName(m);
             if (!mapping.containsKey(fieldName)) {
                 mapping.put(fieldName, fieldName);
