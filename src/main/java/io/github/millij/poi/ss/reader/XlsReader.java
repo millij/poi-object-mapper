@@ -1,15 +1,22 @@
 package io.github.millij.poi.ss.reader;
 
 import static io.github.millij.poi.util.Beans.isInstantiableType;
+
 import io.github.millij.poi.SpreadsheetReadException;
 import io.github.millij.poi.ss.handler.RowListener;
+import io.github.millij.poi.ss.writer.SpreadsheetWriter;
 import io.github.millij.poi.util.Spreadsheet;
 
 import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -117,7 +124,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
                 continue; // Skip Header row
             }
 
-            Map<String, Object> rowDataMap = this.extractRowDataAsMap(row, headerMap);
+            Map<String, Object> rowDataMap = this.extractRowDataAsMap(beanClz,row, headerMap);
             if (rowDataMap == null || rowDataMap.isEmpty()) {
                 continue;
             }
@@ -169,7 +176,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
         return cellHeaderMap;
     }
 
-    private Map<String, Object> extractRowDataAsMap(HSSFRow row, Map<Integer, String> columnHeaderMap) {
+    private <T> Map<String, Object> extractRowDataAsMap(Class<T> beanClz,HSSFRow row, Map<Integer, String> columnHeaderMap) {
         // Sanity checks
         if (row == null) {
             return new HashMap<String, Object>();
@@ -190,12 +197,35 @@ public class XlsReader extends AbstractSpreadsheetReader {
                     rowDataMap.put(cellColName, cell.getStringCellValue());
                     break;
                 case NUMERIC:
-                    rowDataMap.put(cellColName, cell.getNumericCellValue());
-                    break;
+                	if (DateUtil.isCellDateFormatted(cell)) {
+
+    					Map<String, String> formats = SpreadsheetWriter.getFormats(beanClz);
+    					String cellFormat = formats.get(cellColName);
+
+    					Date date = cell.getDateCellValue();
+    					LocalDateTime localDateTime = LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+
+    					DateTimeFormatter formatter = null;
+    					if (cellFormat != null) {
+    						formatter = DateTimeFormatter.ofPattern(cellFormat);
+    					} else {
+    						formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    					}
+
+    					String formattedDateTime = localDateTime.format(formatter);
+    					rowDataMap.put(cellColName, formattedDateTime);
+    					break;
+
+    				} else {
+    					rowDataMap.put(cellColName, cell.getNumericCellValue());
+    					break;
+    				}
+                    
                 case BOOLEAN:
                     rowDataMap.put(cellColName, cell.getBooleanCellValue());
                     break;
                 case FORMULA:
+                	rowDataMap.put(cellColName, cell.getCellFormula());
                 case BLANK:
                 case ERROR:
                     break;
