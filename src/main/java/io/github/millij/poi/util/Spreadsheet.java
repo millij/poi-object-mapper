@@ -59,11 +59,14 @@ public final class Spreadsheet {
         Field[] fields = beanType.getDeclaredFields();
         for (Field f : fields) {
             String fieldName = f.getName();
-            mapping.put(fieldName, fieldName);
 
             SheetColumn ec = f.getAnnotation(SheetColumn.class);
-            if (ec != null && StringUtils.isNotEmpty(ec.value())) {
-                mapping.put(fieldName, ec.value());
+            
+            if (ec != null) {
+                String value = StringUtils.isNotEmpty(ec.value())
+                        ? ec.value()
+                        : fieldName;
+                mapping.put(fieldName, value);
             }
         }
 
@@ -71,13 +74,14 @@ public final class Spreadsheet {
         Method[] methods = beanType.getDeclaredMethods();
         for (Method m : methods) {
             String fieldName = Beans.getFieldName(m);
-            if (!mapping.containsKey(fieldName)) {
-                mapping.put(fieldName, fieldName);
-            }
 
             SheetColumn ec = m.getAnnotation(SheetColumn.class);
-            if (ec != null && StringUtils.isNotEmpty(ec.value())) {
-                mapping.put(fieldName, ec.value());
+
+            if (ec != null && !mapping.containsKey(fieldName)) {
+                String value = StringUtils.isNotEmpty(ec.value())
+                        ? ec.value()
+                        : fieldName;
+                mapping.put(fieldName, value);
             }
         }
 
