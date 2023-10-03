@@ -142,11 +142,11 @@ public class SpreadsheetWriter {
                         	String value = rowsData.get(key).get(i);
                         	
                         	
-                        	LocalDate harsha = LocalDate.parse(value,DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                        	LocalDate localDate = LocalDate.parse(value,DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
                             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(keyFormat);
                                     
-                            String formattedDateTime = harsha.format(formatter);
+                            String formattedDateTime = localDate.format(formatter);
                             
                         	cell.setCellValue(formattedDateTime);
                         	cellNo++;
