@@ -52,8 +52,8 @@ test {
 // ----------------------------------------------------------------------------
 
 tasks.withType(JavaCompile) {
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
+    sourceCompatibility = 11
+    targetCompatibility = 11
 }
 
 task javadocJar(type: Jar) {
@@ -75,9 +75,9 @@ artifacts {
 
 // Signing
 
-signing {
-    sign configurations.archives
-}
+//signing {
+//    sign configurations.archives
+//}
 
 
 
@@ -104,57 +104,4 @@ check.dependsOn jacocoTestReport
 // Release
 // ----------------------------------------------------------------------------
 
-uploadArchives {
 
-    repositories {
-        mavenDeployer {
-
-            // Sign Artifacts before deploying
-            beforeDeployment {
-                MavenDeployment deployment -> signing.signPom(deployment) 
-            }
-
-            // Staging Repo
-            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            // Snapshot Repo
-            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-
-            // Project Info to generate POM
-            pom.project {
-                name 'Object Mapper for Apache POI'
-                packaging 'jar'
-                description 'Objects mapper for Office formats - Excel files, Spreadsheets, etc. '
-                url 'https://millij.github.io/poi-object-mapper/'
-
-                scm {
-                    url 'https://github.com/millij/poi-object-mapper.git'
-                    connection 'scm:git:https://github.com/millij/poi-object-mapper.git'
-                    developerConnection 'scm:git:https://github.com/millij/poi-object-mapper.git'
-                }
-
-                licenses {
-                    license {
-                        name 'MIT License'
-                        url 'https://opensource.org/licenses/mit-license.php'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id 'millij'
-                        name 'Gowri Shankar'
-                        email 'gowrishankar.milli@gmail.com'
-                    }
-                }
-            }   // POM
-
-        }   // mavenDeployer
-
-    }
-}
