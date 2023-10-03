@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 /**
  * Spreadsheet related utilites.
  */
@@ -35,6 +36,7 @@ public final class Spreadsheet {
      * Splits the CellReference and returns only the column reference.
      * 
      * @param cellRef the cell reference value (ex. D3)
+     * 
      * @return returns the column index "D" from the cell reference "D3"
      */
     public static String getCellColumnReference(String cellRef) {
@@ -56,31 +58,27 @@ public final class Spreadsheet {
         final Map<String, String> mapping = new HashMap<String, String>();
 
         // Fields
-        Field[] fields = beanType.getDeclaredFields();
+        final Field[] fields = beanType.getDeclaredFields();
         for (Field f : fields) {
             String fieldName = f.getName();
 
             SheetColumn ec = f.getAnnotation(SheetColumn.class);
-            
+
             if (ec != null) {
-                String value = StringUtils.isNotEmpty(ec.value())
-                        ? ec.value()
-                        : fieldName;
+                String value = StringUtils.isNotEmpty(ec.value()) ? ec.value() : fieldName;
                 mapping.put(fieldName, value);
             }
         }
 
         // Methods
-        Method[] methods = beanType.getDeclaredMethods();
+        final Method[] methods = beanType.getDeclaredMethods();
         for (Method m : methods) {
             String fieldName = Beans.getFieldName(m);
 
             SheetColumn ec = m.getAnnotation(SheetColumn.class);
 
             if (ec != null && !mapping.containsKey(fieldName)) {
-                String value = StringUtils.isNotEmpty(ec.value())
-                        ? ec.value()
-                        : fieldName;
+                String value = StringUtils.isNotEmpty(ec.value()) ? ec.value() : fieldName;
                 mapping.put(fieldName, value);
             }
         }
@@ -112,7 +110,6 @@ public final class Spreadsheet {
     }
 
 
-    
 
     // Read from Bean : as Row Data
     // ------------------------------------------------------------------------

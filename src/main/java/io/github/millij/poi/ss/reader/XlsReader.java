@@ -76,7 +76,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
             LOGGER.error(errMsg, ex);
             throw new SpreadsheetReadException(errMsg, ex);
         }
-        
+
     }
 
     @Override
@@ -106,12 +106,12 @@ public class XlsReader extends AbstractSpreadsheetReader {
 
 
     // Sheet Process
-    
+
     protected <T> void processSheet(Class<T> beanClz, HSSFSheet sheet, int headerRowNo, RowListener<T> eventHandler) {
         // Header column - name mapping
         HSSFRow headerRow = sheet.getRow(headerRowNo);
         Map<Integer, String> headerMap = this.extractCellHeaderMap(headerRow);
-        
+
         // Bean Properties - column name mapping
         Map<String, String> cellPropMapping = Spreadsheet.getColumnToPropertyMap(beanClz);
 
@@ -124,7 +124,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
                 continue; // Skip Header row
             }
 
-            Map<String, Object> rowDataMap = this.extractRowDataAsMap(beanClz,row, headerMap);
+            Map<String, Object> rowDataMap = this.extractRowDataAsMap(beanClz, row, headerMap);
             if (rowDataMap == null || rowDataMap.isEmpty()) {
                 continue;
             }
@@ -176,7 +176,8 @@ public class XlsReader extends AbstractSpreadsheetReader {
         return cellHeaderMap;
     }
 
-    private <T> Map<String, Object> extractRowDataAsMap(Class<T> beanClz,HSSFRow row, Map<Integer, String> columnHeaderMap) {
+    private <T> Map<String, Object> extractRowDataAsMap(Class<T> beanClz, HSSFRow row,
+            Map<Integer, String> columnHeaderMap) {
         // Sanity checks
         if (row == null) {
             return new HashMap<String, Object>();
@@ -197,35 +198,32 @@ public class XlsReader extends AbstractSpreadsheetReader {
                     rowDataMap.put(cellColName, cell.getStringCellValue());
                     break;
                 case NUMERIC:
-                	if (DateUtil.isCellDateFormatted(cell)) {
+                    if (DateUtil.isCellDateFormatted(cell)) {
 
-    					Map<String, String> formats = SpreadsheetWriter.getFormats(beanClz);
-    					String cellFormat = formats.get(cellColName);
+                        final Map<String, String> formats = SpreadsheetWriter.getFormats(beanClz);
+                        final String cellFormat = formats.get(cellColName);
 
-    					Date date = cell.getDateCellValue();
-    					LocalDateTime localDateTime = LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+                        Date date = cell.getDateCellValue();
+                        LocalDateTime localDateTime = LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
 
-    					DateTimeFormatter formatter = null;
-    					if (cellFormat != null) {
-    						formatter = DateTimeFormatter.ofPattern(cellFormat);
-    					} else {
-    						formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    					}
+                        final DateTimeFormatter formatter = cellFormat != null ? DateTimeFormatter.ofPattern(cellFormat)
+                                : DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT);
 
-    					String formattedDateTime = localDateTime.format(formatter);
-    					rowDataMap.put(cellColName, formattedDateTime);
-    					break;
+                        String formattedDateTime = localDateTime.format(formatter);
 
-    				} else {
-    					rowDataMap.put(cellColName, cell.getNumericCellValue());
-    					break;
-    				}
-                    
+                        rowDataMap.put(cellColName, formattedDateTime);
+                        break;
+
+                    } else {
+                        rowDataMap.put(cellColName, cell.getNumericCellValue());
+                        break;
+                    }
+
                 case BOOLEAN:
                     rowDataMap.put(cellColName, cell.getBooleanCellValue());
                     break;
                 case FORMULA:
-                	rowDataMap.put(cellColName, cell.getCellFormula());
+                    rowDataMap.put(cellColName, cell.getCellFormula());
                 case BLANK:
                 case ERROR:
                     break;
@@ -236,7 +234,6 @@ public class XlsReader extends AbstractSpreadsheetReader {
 
         return rowDataMap;
     }
-
 
 
 
