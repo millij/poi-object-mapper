@@ -231,6 +231,38 @@ public final class Spreadsheet {
 
         return null;
     }
+    
+    public static <T> T rowAsBean(Class<T> beanClz, Map<String, Object> fieldRowValues) {
+        // Sanity checks
+        if (fieldRowValues == null || beanClz == null) {
+            return null;
+        }
+
+        try {
+            // Create new Instance
+            T rowBean = beanClz.newInstance();
+
+            // Fill in the datat
+            for (String fieldName : fieldRowValues.keySet()) {
+                Object propValue = fieldRowValues.get(fieldName);
+                
+                try {
+                    // Set the property value in the current row object bean
+                    BeanUtils.setProperty(rowBean, fieldName, propValue);
+                } catch (IllegalAccessException | InvocationTargetException ex) {
+                    String errMsg = String.format("Failed to set bean property - %s, value - %s", fieldName, propValue);
+                    LOGGER.error(errMsg, ex);
+                }
+            }
+
+            return rowBean;
+        } catch (Exception ex) {
+            String errMsg = String.format("Error while creating bean - %s, from - %s", beanClz, fieldRowValues);
+            LOGGER.error(errMsg, ex);
+        }
+
+        return null;
+    }
 
     
     public static Map<Integer,String> getColumnIndexToPropertyMap(Class<?> beanType) {

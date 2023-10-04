@@ -3,13 +3,18 @@ package io.github.millij.poi.ss.reader;
 import static io.github.millij.poi.util.Beans.isInstantiableType;
 import io.github.millij.poi.SpreadsheetReadException;
 import io.github.millij.poi.ss.handler.RowListener;
+import io.github.millij.poi.ss.model.annotations.SheetColumn;
+import io.github.millij.poi.util.Beans;
 import io.github.millij.poi.util.Spreadsheet;
 
 import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -69,7 +74,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
             LOGGER.error(errMsg, ex);
             throw new SpreadsheetReadException(errMsg, ex);
         }
-        
+
     }
 
     @Override
@@ -99,12 +104,15 @@ public class XlsReader extends AbstractSpreadsheetReader {
 
 
     // Sheet Process
-    
+
     protected <T> void processSheet(Class<T> beanClz, HSSFSheet sheet, int headerRowNo, RowListener<T> eventHandler) {
         // Header column - name mapping
         HSSFRow headerRow = sheet.getRow(headerRowNo);
         Map<Integer, String> headerMap = this.extractCellHeaderMap(headerRow);
         
+        //Index to fieldName mapping
+        Map<Integer, String> indexFieldMap = this.extractIndexFieldNameMap(beanClz);        
+
         // Bean Properties - column name mapping
         Map<String, String> cellPropMapping = Spreadsheet.getColumnToPropertyMap(beanClz);
 
@@ -117,13 +125,13 @@ public class XlsReader extends AbstractSpreadsheetReader {
                 continue; // Skip Header row
             }
 
-            Map<String, Object> rowDataMap = this.extractRowDataAsMap(row, headerMap);
+            Map<String, Object> rowDataMap = this.extractRowDataAsMap(row, indexFieldMap);
             if (rowDataMap == null || rowDataMap.isEmpty()) {
                 continue;
             }
 
             // Row data as Bean
-            T rowBean = Spreadsheet.rowAsBean(beanClz, cellPropMapping, rowDataMap);
+            T rowBean = Spreadsheet.rowAsBean(beanClz, rowDataMap);
             eventHandler.row(rowNum, rowBean);
         }
     }
@@ -207,6 +215,52 @@ public class XlsReader extends AbstractSpreadsheetReader {
         return rowDataMap;
     }
 
+    private Map<Integer, String> extractIndexFieldNameMap(Class<?> beanType) {
+
+        // Sanity checks
+        if (beanType == null) {
+            return new HashMap<Integer, String>();
+        }
+
+        Map<Integer, String> indexFieldMap = new HashMap<Integer, String>();
+
+        // Fields
+        for (Field f : beanType.getDeclaredFields()) {
+            if (!f.isAnnotationPresent(SheetColumn.class)) {
+                continue;
+            }
+
+            String fieldName = f.getName();
+
+            SheetColumn ec = f.getAnnotation(SheetColumn.class);
+            
+            if(ec != null && ec.index() != 999999999) {
+                indexFieldMap.put(ec.index(),fieldName);                                
+            }
+
+            
+        }
+
+        // Methods
+        for (Method m : beanType.getDeclaredMethods()) {
+            if (!m.isAnnotationPresent(SheetColumn.class)) {
+                continue;
+            }
+
+            String fieldName = Beans.getFieldName(m);
+
+            SheetColumn ec = m.getAnnotation(SheetColumn.class);
+            
+            if(ec != null && ec.index() != 999999999) {
+                indexFieldMap.put(ec.index(),fieldName);                                
+            }
+
+        }
+
+
+
+        return indexFieldMap;
+    }
 
 
 
