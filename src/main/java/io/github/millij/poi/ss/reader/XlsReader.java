@@ -124,7 +124,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
                 continue; // Skip Header row
             }
 
-            Map<String, Object> rowDataMap = this.extractRowDataAsMap(beanClz, row, headerMap);
+            final Map<String, Object> rowDataMap = this.extractRowDataAsMap(beanClz, row, headerMap);
             if (rowDataMap == null || rowDataMap.isEmpty()) {
                 continue;
             }
@@ -203,14 +203,14 @@ public class XlsReader extends AbstractSpreadsheetReader {
                         final Map<String, String> formats = SpreadsheetWriter.getFormats(beanClz);
                         final String cellFormat = formats.get(cellColName);
 
-                        Date date = cell.getDateCellValue();
-                        LocalDateTime localDateTime = LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+                        final Date date = cell.getDateCellValue();
+                        final LocalDateTime localDateTime =
+                                LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
 
                         final DateTimeFormatter formatter = cellFormat != null ? DateTimeFormatter.ofPattern(cellFormat)
                                 : DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT);
 
-                        String formattedDateTime = localDateTime.format(formatter);
-
+                        final String formattedDateTime = localDateTime.format(formatter);
                         rowDataMap.put(cellColName, formattedDateTime);
                         break;
 

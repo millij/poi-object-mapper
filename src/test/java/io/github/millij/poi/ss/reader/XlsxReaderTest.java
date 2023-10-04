@@ -56,7 +56,7 @@ public class XlsxReaderTest {
     public void test_read_xlsx_single_sheet() throws SpreadsheetReadException {
         // Excel Reader
         LOGGER.info("test_read_xlsx_single_sheet :: Reading file - {}", _filepath_xlsx_single_sheet);
-        XlsxReader_ftDate reader = new XlsxReader_ftDate();
+        XlsxReader reader = new XlsxReader();
 
         // Read
         List<Employee> employees = reader.read(Employee.class, new File(_filepath_xlsx_single_sheet));
@@ -73,7 +73,7 @@ public class XlsxReaderTest {
     public void test_read_xlsx_multiple_sheets() throws SpreadsheetReadException {
         // Excel Reader
         LOGGER.info("test_read_xlsx_multiple_sheets :: Reading file - {}", _filepath_xlsx_multiple_sheets);
-        XlsxReader_ftDate ger = new XlsxReader_ftDate();
+        XlsxReader ger = new XlsxReader();
 
         // Read Sheet 1
         List<Employee> employees = ger.read(Employee.class, new File(_filepath_xlsx_multiple_sheets), 0);
@@ -102,7 +102,7 @@ public class XlsxReaderTest {
     public void test_read_xlsx_single_sheet_from_stream() throws SpreadsheetReadException, FileNotFoundException {
         // Excel Reader
         LOGGER.info("test_read_xlsx_single_sheet_from_stream :: Reading file - {}", _filepath_xlsx_single_sheet);
-        XlsxReader_ftDate reader = new XlsxReader_ftDate();
+        XlsxReader reader = new XlsxReader();
 
         // InputStream
         final InputStream fis = new FileInputStream(new File(_filepath_xlsx_single_sheet));
@@ -121,7 +121,7 @@ public class XlsxReaderTest {
     public void test_read_xlsx_multiple_sheets_from_stream() throws SpreadsheetReadException, FileNotFoundException {
         // Excel Reader
         LOGGER.info("test_read_xlsx_multiple_sheets_from_stream :: Reading file - {}", _filepath_xlsx_multiple_sheets);
-        XlsxReader_ftDate reader = new XlsxReader_ftDate();
+        XlsxReader reader = new XlsxReader();
 
         // InputStream
         final InputStream fisSheet1 = new FileInputStream(new File(_filepath_xlsx_multiple_sheets));
@@ -162,7 +162,7 @@ public class XlsxReaderTest {
         final List<Employee> employees = new ArrayList<Employee>();
 
         // Read
-        XlsxReader_ftDate reader = new XlsxReader_ftDate();
+        XlsxReader reader = new XlsxReader();
         reader.read(Employee.class, xlsxFile, new RowListener<Employee>() {
 
             @Override
@@ -186,7 +186,7 @@ public class XlsxReaderTest {
     public void test_read_xlsx_as_Map() throws FileNotFoundException {
         // Excel Reader
         LOGGER.info("test_read_xlsx_as_Map :: Reading file - {}", _filepath_xlsx_single_sheet);
-        XlsxReader_ftDate ger = new XlsxReader_ftDate();
+        XlsxReader ger = new XlsxReader();
 
         // Read
         /*

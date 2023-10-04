@@ -51,13 +51,13 @@ import org.xml.sax.XMLReader;
  * 
  * @see XlsReader
  */
-public class XlsxReader_ftDate extends AbstractSpreadsheetReader {
+public class XlsxReader extends AbstractSpreadsheetReader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(XlsxReader_ftDate.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(XlsxReader.class);
 
     // Constructor
 
-    public XlsxReader_ftDate() {
+    public XlsxReader() {
         super();
     }
 
@@ -141,7 +141,7 @@ public class XlsxReader_ftDate extends AbstractSpreadsheetReader {
                 continue; // Skip Header row
             }
 
-            Map<String, Object> rowDataMap = this.extractRowDataAsMap(beanClz, row, headerMap);
+            final Map<String, Object> rowDataMap = this.extractRowDataAsMap(beanClz, row, headerMap);
             if (rowDataMap == null || rowDataMap.isEmpty()) {
                 continue;
             }
@@ -226,12 +226,9 @@ public class XlsxReader_ftDate extends AbstractSpreadsheetReader {
                         final LocalDateTime localDateTime =
                                 LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
 
-                        DateTimeFormatter formatter = null;
-                        if (cellFormat != null) {
-                            formatter = DateTimeFormatter.ofPattern(cellFormat);
-                        } else {
-                            formatter = DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT);
-                        }
+                        final DateTimeFormatter formatter = cellFormat != null ? DateTimeFormatter.ofPattern(cellFormat)
+                                : DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT);
+
 
                         final String formattedDateTime = localDateTime.format(formatter);
                         rowDataMap.put(cellColName, formattedDateTime);

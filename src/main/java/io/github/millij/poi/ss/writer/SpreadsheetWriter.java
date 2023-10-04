@@ -122,13 +122,14 @@ public class SpreadsheetWriter {
             }
 
             // Data Rows
-            Map<String, List<String>> rowsData = this.prepareSheetRowsData(headers, rowObjects);
+            final Map<String, List<String>> rowsData = this.prepareSheetRowsData(headers, rowObjects);
+            
+            final Map<String, String> dateFormatsMap = this.getFormats(beanType);
+
+            final List<String> formulaCols = this.getFormulaCols(beanType);
+            
             for (int i = 0, rowNum = 1; i < rowObjects.size(); i++, rowNum++) {
                 final XSSFRow row = sheet.createRow(rowNum);
-
-                final Map<String, String> dateFormatsMap = this.getFormats(beanType);
-
-                final List<String> formulaCols = this.getFormulaCols(beanType);
 
                 int cellNo = 0;
                 for (String key : rowsData.keySet()) {
@@ -145,14 +146,14 @@ public class SpreadsheetWriter {
                                     DateTimeFormatter.ofPattern(SpreadsheetReader.DEFAULT_DATE_FORMAT));
 
                             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(keyFormat);
-
                             String formattedDateTime = localDate.format(formatter);
 
                             cell.setCellValue(formattedDateTime);
                             cellNo++;
 
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        } catch (Exception ex) {
+                            String errMsg = String.format("Error while preparing Date with passed date format : %s", ex.getMessage());
+                            LOGGER.error(errMsg, ex);
                         }
 
                     } else if (formulaCols.contains(key)) {
