@@ -1,7 +1,9 @@
 package io.github.millij.poi.util;
 
+import io.github.millij.poi.SpreadsheetReadException;
 import io.github.millij.poi.ss.model.annotations.SheetColumn;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -298,6 +300,41 @@ public final class Spreadsheet {
 		}
 
 		return null;
+	}
+
+	public static <T> boolean isIndexed(Class<T> beanClz,Map<Integer, String> headerMap){
+		// Sanity checks
+		if (Objects.isNull(beanClz)) {
+			throw new IllegalArgumentException("isIndexed :: Invalid ExcelBean type - " + beanClz);
+		}
+		
+		Map<Integer,String> indexFieldMap = new HashMap<Integer,String>();
+		
+		//Fields
+		Field[] fields = beanClz.getDeclaredFields();
+		for(Field f : fields) {
+			String fieldName = f.getName();
+			SheetColumn ec = f.getAnnotation(SheetColumn.class);
+			if(!Objects.isNull(ec)) {
+				indexFieldMap.put(ec.index(),fieldName);
+			}
+		}
+		
+		//Methods
+		Method[] methods = beanClz.getDeclaredMethods();
+		for(Method m : methods) {
+			String fieldName = Beans.getFieldName(m);
+			SheetColumn ec = m.getAnnotation(SheetColumn.class);
+			if(!Objects.isNull(ec)) {
+				indexFieldMap.put(ec.index(),fieldName);
+			}
+		}
+		
+		if(indexFieldMap.size() == headerMap.size()) {
+			return true;			
+		}
+		return false;
+
 	}
 
 }
