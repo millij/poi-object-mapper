@@ -235,7 +235,7 @@ public final class Spreadsheet {
 				}
 			} catch (NullPointerException ex) {
 				if (!Objects.isNull(ex.getMessage())) {
-					System.out.println("Error : " + ex.getMessage());
+					LOGGER.error(ex.getMessage());
 				}
 			}
 		}
@@ -256,7 +256,7 @@ public final class Spreadsheet {
 				}
 			} catch (NullPointerException ex) {
 				if (!Objects.isNull(ex.getMessage())) {
-					System.out.println("Error : " + ex.getMessage());
+					LOGGER.error(ex.getMessage());
 				}
 			}
 		}
