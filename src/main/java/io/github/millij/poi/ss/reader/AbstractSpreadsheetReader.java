@@ -1,18 +1,18 @@
 package io.github.millij.poi.ss.reader;
 
-import io.github.millij.poi.SpreadsheetReadException;
-import io.github.millij.poi.ss.handler.RowListener;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.github.millij.poi.SpreadsheetReadException;
+import io.github.millij.poi.ss.handler.RowListener;
 
 /**
  * A abstract implementation of {@link SpreadsheetReader}.
@@ -91,6 +91,11 @@ abstract class AbstractSpreadsheetReader implements SpreadsheetReader {
 
 	@Override
 	public <T> List<T> read(Class<T> beanClz, File file, String sheetName) throws SpreadsheetReadException {
+		// Sanity Checks
+		if (Objects.isNull(sheetName)) {
+			String errMsg = "Failed to read the file with SheetName : NULL";
+			throw new SpreadsheetReadException(errMsg);
+		}
 		final int sheetNo = this.getSheetNo(beanClz, file, sheetName);
 		return this.read(beanClz, file, sheetNo);
 	}

@@ -2,11 +2,6 @@ package io.github.millij.poi.ss.reader;
 
 import static io.github.millij.poi.util.Beans.isInstantiableType;
 
-import io.github.millij.poi.SpreadsheetReadException;
-import io.github.millij.poi.ss.handler.RowListener;
-import io.github.millij.poi.ss.writer.SpreadsheetWriter;
-import io.github.millij.poi.util.Spreadsheet;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -16,19 +11,23 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
-import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.github.millij.poi.SpreadsheetReadException;
+import io.github.millij.poi.ss.handler.RowListener;
+import io.github.millij.poi.ss.writer.SpreadsheetWriter;
+import io.github.millij.poi.util.Spreadsheet;
 
 /**
  * Reader impletementation of {@link Workbook} for an POIFS file (.xls).
@@ -55,9 +54,13 @@ public class XlsReader extends AbstractSpreadsheetReader {
 			FileInputStream fis = new FileInputStream(file);
 			final HSSFWorkbook wb = new HSSFWorkbook(fis);
 			final int sheetNo = wb.getSheetIndex(sheetName);
+			if (sheetNo == -1) {
+				LOGGER.error("No sheet is available with name :" + sheetName);
+				return null;
+			}
 			return sheetNo;
 		} catch (Exception ex) {
-			String errMsg = String.format("Error reading HSSFSheet, to %s : %s", beanClz, ex.getMessage());
+			String errMsg = String.format("Error getting HSSFSheet number, to %s : %s", beanClz, ex.getMessage());
 			LOGGER.error(errMsg, ex);
 			throw new SpreadsheetReadException(errMsg, ex);
 		}

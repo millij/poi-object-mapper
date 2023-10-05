@@ -2,12 +2,6 @@ package io.github.millij.poi.ss.reader;
 
 import static io.github.millij.poi.util.Beans.isInstantiableType;
 
-import io.github.millij.poi.SpreadsheetReadException;
-import io.github.millij.poi.ss.handler.RowContentsHandler;
-import io.github.millij.poi.ss.handler.RowListener;
-import io.github.millij.poi.ss.writer.SpreadsheetWriter;
-import io.github.millij.poi.util.Spreadsheet;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -17,33 +11,23 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
-// import org.apache.poi.util.SAXHelper;
-import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;
-import org.apache.poi.xssf.eventusermodel.XSSFReader;
-import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
-import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler.SheetContentsHandler;
-import org.apache.poi.xssf.model.StylesTable;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.ContentHandler;
-import org.xml.sax.InputSource;
-import org.xml.sax.XMLReader;
+
+import io.github.millij.poi.SpreadsheetReadException;
+import io.github.millij.poi.ss.handler.RowListener;
+import io.github.millij.poi.ss.writer.SpreadsheetWriter;
+import io.github.millij.poi.util.Spreadsheet;
 
 /**
  * Reader impletementation of {@link Workbook} for an OOXML .xlsx file. This
@@ -71,9 +55,12 @@ public class XlsxReader extends AbstractSpreadsheetReader {
 			FileInputStream fis = new FileInputStream(file);
 			final XSSFWorkbook wb = new XSSFWorkbook(fis);
 			final int sheetNo = wb.getSheetIndex(sheetName);
+			if(sheetNo == -1) {
+				LOGGER.error("No sheet is available with name :" + sheetName);
+			}
 			return sheetNo;
 		} catch (Exception ex) {
-			String errMsg = String.format("Error reading HSSFSheet, to %s : %s", beanClz, ex.getMessage());
+			String errMsg = String.format("Error getting XSSFSheet number, to %s : %s", beanClz, ex.getMessage());
 			LOGGER.error(errMsg, ex);
 			throw new SpreadsheetReadException(errMsg, ex);
 		}
