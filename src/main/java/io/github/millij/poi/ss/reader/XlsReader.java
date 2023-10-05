@@ -7,6 +7,8 @@ import io.github.millij.poi.ss.handler.RowListener;
 import io.github.millij.poi.ss.writer.SpreadsheetWriter;
 import io.github.millij.poi.util.Spreadsheet;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -14,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.poi.ss.usermodel.DateUtil;
@@ -27,7 +30,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * Reader impletementation of {@link Workbook} for an POIFS file (.xls).
  * 
@@ -35,206 +37,217 @@ import org.slf4j.LoggerFactory;
  */
 public class XlsReader extends AbstractSpreadsheetReader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(XlsReader.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(XlsReader.class);
 
+	// Constructor
 
-    // Constructor
+	public XlsReader() {
+		super();
+	}
 
-    public XlsReader() {
-        super();
-    }
+	public <T> Integer getSheetNo(Class<T> beanClz, File file, String sheetName) throws SpreadsheetReadException {
+		// Sanity Checks
+		if (!isInstantiableType(beanClz)) {
+			throw new IllegalArgumentException("XlsReader :: Invalid bean type passed !");
+		}
 
+		try {
+			FileInputStream fis = new FileInputStream(file);
+			final HSSFWorkbook wb = new HSSFWorkbook(fis);
+			final int sheetNo = wb.getSheetIndex(sheetName);
+			return sheetNo;
+		} catch (Exception ex) {
+			String errMsg = String.format("Error reading HSSFSheet, to %s : %s", beanClz, ex.getMessage());
+			LOGGER.error(errMsg, ex);
+			throw new SpreadsheetReadException(errMsg, ex);
+		}
+	}
 
-    // WorkbookReader Impl
-    // ------------------------------------------------------------------------
+	// WorkbookReader Impl
+	// ------------------------------------------------------------------------
 
-    @Override
-    public <T> void read(Class<T> beanClz, InputStream is, RowListener<T> listener) throws SpreadsheetReadException {
-        // Sanity checks
-        if (!isInstantiableType(beanClz)) {
-            throw new IllegalArgumentException("XlsReader :: Invalid bean type passed !");
-        }
+	@Override
+	public <T> void read(Class<T> beanClz, InputStream is, RowListener<T> listener) throws SpreadsheetReadException {
+		// Sanity checks
+		if (!isInstantiableType(beanClz)) {
+			throw new IllegalArgumentException("XlsReader :: Invalid bean type passed !");
+		}
 
-        try {
-            final HSSFWorkbook wb = new HSSFWorkbook(is);
-            final int sheetCount = wb.getNumberOfSheets();
-            LOGGER.debug("Total no. of sheets found in HSSFWorkbook : #{}", sheetCount);
+		try {
+			final HSSFWorkbook wb = new HSSFWorkbook(is);
+			final int sheetCount = wb.getNumberOfSheets();
+			LOGGER.debug("Total no. of sheets found in HSSFWorkbook : #{}", sheetCount);
 
-            // Iterate over sheets
-            for (int i = 0; i < sheetCount; i++) {
-                final HSSFSheet sheet = wb.getSheetAt(i);
-                LOGGER.debug("Processing HSSFSheet at No. : {}", i);
+			// Iterate over sheets
+			for (int i = 0; i < sheetCount; i++) {
+				final HSSFSheet sheet = wb.getSheetAt(i);
+				LOGGER.debug("Processing HSSFSheet at No. : {}", i);
 
-                // Process Sheet
-                this.processSheet(beanClz, sheet, 0, listener);
-            }
+				// Process Sheet
+				this.processSheet(beanClz, sheet, 0, listener);
+			}
 
-            // Close workbook
-            wb.close();
-        } catch (Exception ex) {
-            String errMsg = String.format("Error reading HSSFSheet, to %s : %s", beanClz, ex.getMessage());
-            LOGGER.error(errMsg, ex);
-            throw new SpreadsheetReadException(errMsg, ex);
-        }
+			// Close workbook
+			wb.close();
+		} catch (Exception ex) {
+			String errMsg = String.format("Error reading HSSFSheet, to %s : %s", beanClz, ex.getMessage());
+			LOGGER.error(errMsg, ex);
+			throw new SpreadsheetReadException(errMsg, ex);
+		}
 
-    }
+	}
 
-    @Override
-    public <T> void read(Class<T> beanClz, InputStream is, int sheetNo, RowListener<T> listener)
-            throws SpreadsheetReadException {
-        // Sanity checks
-        if (!isInstantiableType(beanClz)) {
-            throw new IllegalArgumentException("XlsReader :: Invalid bean type passed !");
-        }
+	@Override
+	public <T> void read(Class<T> beanClz, InputStream is, int sheetNo, RowListener<T> listener)
+			throws SpreadsheetReadException {
+		// Sanity checks
+		if (!isInstantiableType(beanClz)) {
+			throw new IllegalArgumentException("XlsReader :: Invalid bean type passed !");
+		}
 
-        try {
-            HSSFWorkbook wb = new HSSFWorkbook(is);
-            final HSSFSheet sheet = wb.getSheetAt(sheetNo);
+		try {
+			HSSFWorkbook wb = new HSSFWorkbook(is);
+			final HSSFSheet sheet = wb.getSheetAt(sheetNo);
 
-            // Process Sheet
-            this.processSheet(beanClz, sheet, 0, listener);
+			// Process Sheet
+			this.processSheet(beanClz, sheet, 0, listener);
 
-            // Close workbook
-            wb.close();
-        } catch (Exception ex) {
-            String errMsg = String.format("Error reading sheet %d, to %s : %s", sheetNo, beanClz, ex.getMessage());
-            LOGGER.error(errMsg, ex);
-            throw new SpreadsheetReadException(errMsg, ex);
-        }
-    }
+			// Close workbook
+			wb.close();
+		} catch (Exception ex) {
+			String errMsg = String.format("Error reading sheet %d, to %s : %s", sheetNo, beanClz, ex.getMessage());
+			LOGGER.error(errMsg, ex);
+			throw new SpreadsheetReadException(errMsg, ex);
+		}
+	}
 
+	// Sheet Process
 
+	protected <T> void processSheet(Class<T> beanClz, HSSFSheet sheet, int headerRowNo, RowListener<T> eventHandler) {
+		// Header column - name mapping
+		HSSFRow headerRow = sheet.getRow(headerRowNo);
+		Map<Integer, String> headerMap = this.extractCellHeaderMap(headerRow);
 
-    // Sheet Process
+		// Bean Properties - column name mapping
+		Map<String, String> cellPropMapping = Spreadsheet.getColumnToPropertyMap(beanClz);
 
-    protected <T> void processSheet(Class<T> beanClz, HSSFSheet sheet, int headerRowNo, RowListener<T> eventHandler) {
-        // Header column - name mapping
-        HSSFRow headerRow = sheet.getRow(headerRowNo);
-        Map<Integer, String> headerMap = this.extractCellHeaderMap(headerRow);
+		Iterator<Row> rows = sheet.rowIterator();
+		while (rows.hasNext()) {
+			// Process Row Data
+			HSSFRow row = (HSSFRow) rows.next();
+			int rowNum = row.getRowNum();
+			if (rowNum == 0) {
+				continue; // Skip Header row
+			}
 
-        // Bean Properties - column name mapping
-        Map<String, String> cellPropMapping = Spreadsheet.getColumnToPropertyMap(beanClz);
+			final Map<String, Object> rowDataMap = this.extractRowDataAsMap(beanClz, row, headerMap);
+			if (rowDataMap == null || rowDataMap.isEmpty()) {
+				continue;
+			}
 
-        Iterator<Row> rows = sheet.rowIterator();
-        while (rows.hasNext()) {
-            // Process Row Data
-            HSSFRow row = (HSSFRow) rows.next();
-            int rowNum = row.getRowNum();
-            if (rowNum == 0) {
-                continue; // Skip Header row
-            }
+			// Row data as Bean
+			T rowBean = Spreadsheet.rowAsBean(beanClz, cellPropMapping, rowDataMap);
+			eventHandler.row(rowNum, rowBean);
+		}
+	}
 
-            final Map<String, Object> rowDataMap = this.extractRowDataAsMap(beanClz, row, headerMap);
-            if (rowDataMap == null || rowDataMap.isEmpty()) {
-                continue;
-            }
+	// Private Methods
+	// ------------------------------------------------------------------------
 
-            // Row data as Bean
-            T rowBean = Spreadsheet.rowAsBean(beanClz, cellPropMapping, rowDataMap);
-            eventHandler.row(rowNum, rowBean);
-        }
-    }
+	private Map<Integer, String> extractCellHeaderMap(HSSFRow headerRow) {
+		// Sanity checks
+		if (headerRow == null) {
+			return new HashMap<Integer, String>();
+		}
 
+		final Map<Integer, String> cellHeaderMap = new HashMap<Integer, String>();
 
-    // Private Methods
-    // ------------------------------------------------------------------------
+		Iterator<Cell> cells = headerRow.cellIterator();
+		while (cells.hasNext()) {
+			HSSFCell cell = (HSSFCell) cells.next();
 
-    private Map<Integer, String> extractCellHeaderMap(HSSFRow headerRow) {
-        // Sanity checks
-        if (headerRow == null) {
-            return new HashMap<Integer, String>();
-        }
+			int cellCol = cell.getColumnIndex();
 
-        final Map<Integer, String> cellHeaderMap = new HashMap<Integer, String>();
+			// Process cell value
+			switch (cell.getCellTypeEnum()) {
+			case STRING:
+				cellHeaderMap.put(cellCol, cell.getStringCellValue());
+				break;
+			case NUMERIC:
+				cellHeaderMap.put(cellCol, String.valueOf(cell.getNumericCellValue()));
+				break;
+			case BOOLEAN:
+				cellHeaderMap.put(cellCol, String.valueOf(cell.getBooleanCellValue()));
+				break;
+			case FORMULA:
+			case BLANK:
+			case ERROR:
+				break;
+			default:
+				break;
+			}
+		}
 
-        Iterator<Cell> cells = headerRow.cellIterator();
-        while (cells.hasNext()) {
-            HSSFCell cell = (HSSFCell) cells.next();
+		return cellHeaderMap;
+	}
 
-            int cellCol = cell.getColumnIndex();
+	private <T> Map<String, Object> extractRowDataAsMap(Class<T> beanClz, HSSFRow row,
+			Map<Integer, String> columnHeaderMap) {
+		// Sanity checks
+		if (row == null) {
+			return new HashMap<String, Object>();
+		}
 
-            // Process cell value
-            switch (cell.getCellTypeEnum()) {
-                case STRING:
-                    cellHeaderMap.put(cellCol, cell.getStringCellValue());
-                    break;
-                case NUMERIC:
-                    cellHeaderMap.put(cellCol, String.valueOf(cell.getNumericCellValue()));
-                    break;
-                case BOOLEAN:
-                    cellHeaderMap.put(cellCol, String.valueOf(cell.getBooleanCellValue()));
-                    break;
-                case FORMULA:
-                case BLANK:
-                case ERROR:
-                    break;
-                default:
-                    break;
-            }
-        }
+		final Map<String, Object> rowDataMap = new HashMap<String, Object>();
 
-        return cellHeaderMap;
-    }
+		Iterator<Cell> cells = row.cellIterator();
+		while (cells.hasNext()) {
+			HSSFCell cell = (HSSFCell) cells.next();
 
-    private <T> Map<String, Object> extractRowDataAsMap(Class<T> beanClz, HSSFRow row,
-            Map<Integer, String> columnHeaderMap) {
-        // Sanity checks
-        if (row == null) {
-            return new HashMap<String, Object>();
-        }
+			int cellCol = cell.getColumnIndex();
+			String cellColName = columnHeaderMap.get(cellCol);
 
-        final Map<String, Object> rowDataMap = new HashMap<String, Object>();
+			// Process cell value
+			switch (cell.getCellTypeEnum()) {
+			case STRING:
+				rowDataMap.put(cellColName, cell.getStringCellValue());
+				break;
+			case NUMERIC:
+				if (DateUtil.isCellDateFormatted(cell)) {
 
-        Iterator<Cell> cells = row.cellIterator();
-        while (cells.hasNext()) {
-            HSSFCell cell = (HSSFCell) cells.next();
+					final Map<String, String> formats = SpreadsheetWriter.getFormats(beanClz);
+					final String cellFormat = formats.get(cellColName);
 
-            int cellCol = cell.getColumnIndex();
-            String cellColName = columnHeaderMap.get(cellCol);
+					final Date date = cell.getDateCellValue();
+					final LocalDateTime localDateTime = LocalDateTime.ofInstant(date.toInstant(),
+							ZoneId.systemDefault());
 
-            // Process cell value
-            switch (cell.getCellTypeEnum()) {
-                case STRING:
-                    rowDataMap.put(cellColName, cell.getStringCellValue());
-                    break;
-                case NUMERIC:
-                    if (DateUtil.isCellDateFormatted(cell)) {
+					final DateTimeFormatter formatter = cellFormat != null ? DateTimeFormatter.ofPattern(cellFormat)
+							: DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT);
 
-                        final Map<String, String> formats = SpreadsheetWriter.getFormats(beanClz);
-                        final String cellFormat = formats.get(cellColName);
+					final String formattedDateTime = localDateTime.format(formatter);
+					rowDataMap.put(cellColName, formattedDateTime);
+					break;
 
-                        final Date date = cell.getDateCellValue();
-                        final LocalDateTime localDateTime =
-                                LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+				} else {
+					rowDataMap.put(cellColName, cell.getNumericCellValue());
+					break;
+				}
 
-                        final DateTimeFormatter formatter = cellFormat != null ? DateTimeFormatter.ofPattern(cellFormat)
-                                : DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT);
+			case BOOLEAN:
+				rowDataMap.put(cellColName, cell.getBooleanCellValue());
+				break;
+			case FORMULA:
+				rowDataMap.put(cellColName, cell.getCellFormula());
+			case BLANK:
+			case ERROR:
+				break;
+			default:
+				break;
+			}
+		}
 
-                        final String formattedDateTime = localDateTime.format(formatter);
-                        rowDataMap.put(cellColName, formattedDateTime);
-                        break;
-
-                    } else {
-                        rowDataMap.put(cellColName, cell.getNumericCellValue());
-                        break;
-                    }
-
-                case BOOLEAN:
-                    rowDataMap.put(cellColName, cell.getBooleanCellValue());
-                    break;
-                case FORMULA:
-                    rowDataMap.put(cellColName, cell.getCellFormula());
-                case BLANK:
-                case ERROR:
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        return rowDataMap;
-    }
-
-
+		return rowDataMap;
+	}
 
 }
