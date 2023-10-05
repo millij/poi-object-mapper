@@ -106,15 +106,9 @@ public class XlsReader extends AbstractSpreadsheetReader {
     // Sheet Process
 
     protected <T> void processSheet(Class<T> beanClz, HSSFSheet sheet, int headerRowNo, RowListener<T> eventHandler) {
-        // Header column - name mapping
-        HSSFRow headerRow = sheet.getRow(headerRowNo);
-        Map<Integer, String> headerMap = this.extractCellHeaderMap(headerRow);
-        
+      
         //Index to fieldName mapping
-        Map<Integer, String> indexFieldMap = this.extractIndexFieldNameMap(beanClz);        
-
-        // Bean Properties - column name mapping
-        Map<String, String> cellPropMapping = Spreadsheet.getColumnToPropertyMap(beanClz);
+        Map<Integer, String> indexFieldMap = Spreadsheet.getIndexToPropertyMap(beanClz);        
 
         Iterator<Row> rows = sheet.rowIterator();
         while (rows.hasNext()) {
@@ -177,7 +171,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
         return cellHeaderMap;
     }
 
-    private Map<String, Object> extractRowDataAsMap(HSSFRow row, Map<Integer, String> columnHeaderMap) {
+    private Map<String, Object> extractRowDataAsMap(HSSFRow row, Map<Integer, String> indexHeaderMap) {
         // Sanity checks
         if (row == null) {
             return new HashMap<String, Object>();
@@ -190,7 +184,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
             HSSFCell cell = (HSSFCell) cells.next();
 
             int cellCol = cell.getColumnIndex();
-            String cellColName = columnHeaderMap.get(cellCol);
+            String cellColName = indexHeaderMap.get(cellCol);
 
             // Process cell value
             switch (cell.getCellTypeEnum()) {
@@ -214,54 +208,5 @@ public class XlsReader extends AbstractSpreadsheetReader {
 
         return rowDataMap;
     }
-
-    private Map<Integer, String> extractIndexFieldNameMap(Class<?> beanType) {
-
-        // Sanity checks
-        if (beanType == null) {
-            return new HashMap<Integer, String>();
-        }
-
-        Map<Integer, String> indexFieldMap = new HashMap<Integer, String>();
-
-        // Fields
-        for (Field f : beanType.getDeclaredFields()) {
-            if (!f.isAnnotationPresent(SheetColumn.class)) {
-                continue;
-            }
-
-            String fieldName = f.getName();
-
-            SheetColumn ec = f.getAnnotation(SheetColumn.class);
-            
-            if(ec != null && ec.index() != 999999999) {
-                indexFieldMap.put(ec.index(),fieldName);                                
-            }
-
-            
-        }
-
-        // Methods
-        for (Method m : beanType.getDeclaredMethods()) {
-            if (!m.isAnnotationPresent(SheetColumn.class)) {
-                continue;
-            }
-
-            String fieldName = Beans.getFieldName(m);
-
-            SheetColumn ec = m.getAnnotation(SheetColumn.class);
-            
-            if(ec != null && ec.index() != 999999999) {
-                indexFieldMap.put(ec.index(),fieldName);                                
-            }
-
-        }
-
-
-
-        return indexFieldMap;
-    }
-
-
 
 }
