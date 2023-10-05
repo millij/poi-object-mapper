@@ -26,7 +26,7 @@ public @interface SheetColumn {
      */
     String value() default "";
     
-    int index() default 999999999;
+    int index() default -1;
     
     
 //    boolean isFormatted() default false;

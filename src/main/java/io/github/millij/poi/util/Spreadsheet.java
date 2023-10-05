@@ -10,9 +10,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,255 +24,238 @@ import org.slf4j.LoggerFactory;
  */
 public final class Spreadsheet {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Spreadsheet.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(Spreadsheet.class);
 
-    private Spreadsheet() {
-        // Utility Class
-    }
+	private Spreadsheet() {
+		// Utility Class
+	}
 
+	// Utilities
+	// ------------------------------------------------------------------------
 
-    // Utilities
-    // ------------------------------------------------------------------------
+	/**
+	 * Splits the CellReference and returns only the column reference.
+	 * 
+	 * @param cellRef the cell reference value (ex. D3)
+	 * @return returns the column index "D" from the cell reference "D3"
+	 */
+	public static String getCellColumnReference(String cellRef) {
+		String cellColRef = cellRef.split("[0-9]*$")[0];
+		return cellColRef;
+	}
 
-    /**
-     * Splits the CellReference and returns only the column reference.
-     * 
-     * @param cellRef the cell reference value (ex. D3)
-     * @return returns the column index "D" from the cell reference "D3"
-     */
-    public static String getCellColumnReference(String cellRef) {
-        String cellColRef = cellRef.split("[0-9]*$")[0];
-        return cellColRef;
-    }
+	// Bean :: Property Utils
 
+	public static Map<String, String> getPropertyToColumnNameMap(Class<?> beanType) {
+		// Sanity checks
+		if (beanType == null) {
+			throw new IllegalArgumentException("getColumnToPropertyMap :: Invalid ExcelBean type - " + beanType);
+		}
 
+		// Property to Column name Mapping
+		final Map<String, String> mapping = new HashMap<String, String>();
 
-    // Bean :: Property Utils
+		// Fields
+		Field[] fields = beanType.getDeclaredFields();
+		for (Field f : fields) {
+			String fieldName = f.getName();
+			mapping.put(fieldName, fieldName);
 
-    public static Map<String, String> getPropertyToColumnNameMap(Class<?> beanType) {
-        // Sanity checks
-        if (beanType == null) {
-            throw new IllegalArgumentException("getColumnToPropertyMap :: Invalid ExcelBean type - " + beanType);
-        }
+			SheetColumn ec = f.getAnnotation(SheetColumn.class);
+			if (ec != null && StringUtils.isNotEmpty(ec.value())) {
+				mapping.put(fieldName, ec.value());
+			}
+		}
 
-        // Property to Column name Mapping
-        final Map<String, String> mapping = new HashMap<String, String>();
+		// Methods
+		Method[] methods = beanType.getDeclaredMethods();
+		for (Method m : methods) {
+			String fieldName = Beans.getFieldName(m);
+			if (!mapping.containsKey(fieldName)) {
+				mapping.put(fieldName, fieldName);
+			}
 
-        // Fields
-        Field[] fields = beanType.getDeclaredFields();
-        for (Field f : fields) {
-            String fieldName = f.getName();
-            mapping.put(fieldName, fieldName);
+			SheetColumn ec = m.getAnnotation(SheetColumn.class);
+			if (ec != null && StringUtils.isNotEmpty(ec.value())) {
+				mapping.put(fieldName, ec.value());
+			}
+		}
 
-            SheetColumn ec = f.getAnnotation(SheetColumn.class);
-            if (ec != null && StringUtils.isNotEmpty(ec.value())) {
-                mapping.put(fieldName, ec.value());
-            }
-        }
+		LOGGER.info("Bean property to Excel Column of - {} : {}", beanType, mapping);
+		return Collections.unmodifiableMap(mapping);
+	}
 
-        // Methods
-        Method[] methods = beanType.getDeclaredMethods();
-        for (Method m : methods) {
-            String fieldName = Beans.getFieldName(m);
-            if (!mapping.containsKey(fieldName)) {
-                mapping.put(fieldName, fieldName);
-            }
+	public static Map<String, String> getColumnToPropertyMap(Class<?> beanType) {
+		// Column to Property Mapping
+		final Map<String, String> columnToPropMap = new HashMap<String, String>();
 
-            SheetColumn ec = m.getAnnotation(SheetColumn.class);
-            if (ec != null && StringUtils.isNotEmpty(ec.value())) {
-                mapping.put(fieldName, ec.value());
-            }
-        }
+		// Bean Property to Column Mapping
+		final Map<String, String> propToColumnMap = getPropertyToColumnNameMap(beanType);
+		for (String prop : propToColumnMap.keySet()) {
+			columnToPropMap.put(propToColumnMap.get(prop), prop);
+		}
 
-        LOGGER.info("Bean property to Excel Column of - {} : {}", beanType, mapping);
-        return Collections.unmodifiableMap(mapping);
-    }
+		LOGGER.info("Excel Column to property map of - {} : {}", beanType, columnToPropMap);
+		return Collections.unmodifiableMap(columnToPropMap);
+	}
 
-    public static Map<String, String> getColumnToPropertyMap(Class<?> beanType) {
-        // Column to Property Mapping
-        final Map<String, String> columnToPropMap = new HashMap<String, String>();
+	public static List<String> getColumnNames(Class<?> beanType) {
+		// Bean Property to Column Mapping
+		final Map<String, String> propToColumnMap = getPropertyToColumnNameMap(beanType);
+		final Map<Integer, String> indexToPropMap = getIndexToPropertyMap(beanType);
 
-        // Bean Property to Column Mapping
-        final Map<String, String> propToColumnMap = getPropertyToColumnNameMap(beanType);
-        for (String prop : propToColumnMap.keySet()) {
-            columnToPropMap.put(propToColumnMap.get(prop), prop);
-        }
+		Set<Integer> indexes = indexToPropMap.keySet();
+		List<Integer> indexList = new ArrayList<Integer>(indexes);
+		Collections.sort(indexList);
 
-        LOGGER.info("Excel Column to property map of - {} : {}", beanType, columnToPropMap);
-        return Collections.unmodifiableMap(columnToPropMap);
-    }
+		ArrayList<String> columnNames = new ArrayList<>();
 
-    public static List<String> getColumnNames(Class<?> beanType) {
-        // Bean Property to Column Mapping
-        final Map<String, String> propToColumnMap = getPropertyToColumnNameMap(beanType);
-        final Map<Integer,String> indexToPropMap = getColumnIndexToPropertyMap(beanType);
-        
-        if(indexToPropMap.size() > 1) {
-        	
-        	Set<Integer> indexes = indexToPropMap.keySet();
-            List<Integer> indexList = new ArrayList<Integer>(indexes);
-            Collections.sort(indexList);
-            
-            ArrayList<String> columnNames = new ArrayList<>();
-            
-            for(Integer index : indexToPropMap.keySet())
-            {
-            	String colValue = propToColumnMap.get(indexToPropMap.get(index));
-            	columnNames.add(colValue);
-            }
-            
-            ArrayList<String> columnNamesDup = new ArrayList<>(propToColumnMap.values());
-            
-            for(String str : columnNamesDup)
-            {
-            	if(columnNames.contains(str)){
-            		continue;
-            	}
-            	else{
-            		columnNames.add(str);
-            	}
-            }
-            return columnNames;
-        }
-        else {
-        	ArrayList<String> columnNames = new ArrayList<>(propToColumnMap.values());
-        	return columnNames;
-        }
-        
-        
-    }
+		for (Integer index : indexList) {
+			String colValue = propToColumnMap.get(indexToPropMap.get(index));
+			columnNames.add(colValue);
+		}
+		return columnNames;
+	}
 
+	// Read from Bean : as Row Data
+	// ------------------------------------------------------------------------
 
-    
+	public static Map<String, String> asRowDataMap(Object beanObj, List<String> colHeaders) throws Exception {
+		// Excel Bean Type
+		final Class<?> beanType = beanObj.getClass();
 
-    // Read from Bean : as Row Data
-    // ------------------------------------------------------------------------
+		// RowData map
+		final Map<String, String> rowDataMap = new HashMap<String, String>();
 
-    public static Map<String, String> asRowDataMap(Object beanObj, List<String> colHeaders) throws Exception {
-        // Excel Bean Type
-        final Class<?> beanType = beanObj.getClass();
+		// Fields
+		for (Field f : beanType.getDeclaredFields()) {
+			if (!f.isAnnotationPresent(SheetColumn.class)) {
+				continue;
+			}
 
-        // RowData map
-        final Map<String, String> rowDataMap = new HashMap<String, String>();
+			String fieldName = f.getName();
 
-        // Fields
-        for (Field f : beanType.getDeclaredFields()) {
-            if (!f.isAnnotationPresent(SheetColumn.class)) {
-                continue;
-            }
+			SheetColumn ec = f.getAnnotation(SheetColumn.class);
+			String header = StringUtils.isEmpty(ec.value()) ? fieldName : ec.value();
+			if (!colHeaders.contains(header)) {
+				continue;
+			}
 
-            String fieldName = f.getName();
+			rowDataMap.put(header, Beans.getFieldValueAsString(beanObj, fieldName));
+		}
 
-            SheetColumn ec = f.getAnnotation(SheetColumn.class);
-            String header = StringUtils.isEmpty(ec.value()) ? fieldName : ec.value();
-            if (!colHeaders.contains(header)) {
-                continue;
-            }
+		// Methods
+		for (Method m : beanType.getDeclaredMethods()) {
+			if (!m.isAnnotationPresent(SheetColumn.class)) {
+				continue;
+			}
 
-            rowDataMap.put(header, Beans.getFieldValueAsString(beanObj, fieldName));
-        }
+			String fieldName = Beans.getFieldName(m);
 
-        // Methods
-        for (Method m : beanType.getDeclaredMethods()) {
-            if (!m.isAnnotationPresent(SheetColumn.class)) {
-                continue;
-            }
+			SheetColumn ec = m.getAnnotation(SheetColumn.class);
+			String header = StringUtils.isEmpty(ec.value()) ? fieldName : ec.value();
+			if (!colHeaders.contains(header)) {
+				continue;
+			}
 
-            String fieldName = Beans.getFieldName(m);
+			rowDataMap.put(header, Beans.getFieldValueAsString(beanObj, fieldName));
+		}
 
-            SheetColumn ec = m.getAnnotation(SheetColumn.class);
-            String header = StringUtils.isEmpty(ec.value()) ? fieldName : ec.value();
-            if (!colHeaders.contains(header)) {
-                continue;
-            }
+		return rowDataMap;
+	}
 
-            rowDataMap.put(header, Beans.getFieldValueAsString(beanObj, fieldName));
-        }
+	// Write to Bean :: from Row data
+	// ------------------------------------------------------------------------
 
-        return rowDataMap;
-    }
+	public static <T> T rowAsBean(Class<T> beanClz, Map<String, String> cellProperies, Map<String, Object> cellValues) {
+		// Sanity checks
+		if (cellValues == null || cellProperies == null) {
+			return null;
+		}
 
+		try {
+			// Create new Instance
+			T rowBean = beanClz.newInstance();
 
+			// Fill in the datat
+			for (String cellName : cellProperies.keySet()) {
+				String propName = cellProperies.get(cellName);
+				if (StringUtils.isEmpty(propName)) {
+					LOGGER.debug("{} : No mathching property found for column[name] - {} ", beanClz, cellName);
+					continue;
+				}
 
-    // Write to Bean :: from Row data
-    // ------------------------------------------------------------------------
+				Object propValue = cellValues.get(cellName);
+				try {
+					// Set the property value in the current row object bean
+					BeanUtils.setProperty(rowBean, propName, propValue);
+				} catch (IllegalAccessException | InvocationTargetException ex) {
+					String errMsg = String.format("Failed to set bean property - %s, value - %s", propName, propValue);
+					LOGGER.error(errMsg, ex);
+				}
+			}
 
-    public static <T> T rowAsBean(Class<T> beanClz, Map<String, String> cellProperies, Map<String, Object> cellValues) {
-        // Sanity checks
-        if (cellValues == null || cellProperies == null) {
-            return null;
-        }
+			return rowBean;
+		} catch (Exception ex) {
+			String errMsg = String.format("Error while creating bean - %s, from - %s", beanClz, cellValues);
+			LOGGER.error(errMsg, ex);
+		}
 
-        try {
-            // Create new Instance
-            T rowBean = beanClz.newInstance();
+		return null;
+	}
 
-            // Fill in the datat
-            for (String cellName : cellProperies.keySet()) {
-                String propName = cellProperies.get(cellName);
-                if (StringUtils.isEmpty(propName)) {
-                    LOGGER.debug("{} : No mathching property found for column[name] - {} ", beanClz, cellName);
-                    continue;
-                }
+	public static Map<Integer, String> getIndexToPropertyMap(Class<?> beanType) {
+		// Sanity checks
+		if (Objects.isNull(beanType)) {
+			throw new IllegalArgumentException("getColumnIndexToPropertyMap :: Invalid ExcelBean type - " + beanType);
+		}
 
-                Object propValue = cellValues.get(cellName);
-                try {
-                    // Set the property value in the current row object bean
-                    BeanUtils.setProperty(rowBean, propName, propValue);
-                } catch (IllegalAccessException | InvocationTargetException ex) {
-                    String errMsg = String.format("Failed to set bean property - %s, value - %s", propName, propValue);
-                    LOGGER.error(errMsg, ex);
-                }
-            }
+		// Column Index to Property Mapping
+		final Map<Integer, String> mapping = new HashMap<Integer, String>();
 
-            return rowBean;
-        } catch (Exception ex) {
-            String errMsg = String.format("Error while creating bean - %s, from - %s", beanClz, cellValues);
-            LOGGER.error(errMsg, ex);
-        }
+		// Fields
+		Field[] fields = beanType.getDeclaredFields();
+		for (Field f : fields) {
+			String fieldName = f.getName();
 
-        return null;
-    }
+			SheetColumn ec = f.getAnnotation(SheetColumn.class);
+			try {
+				if (ec != null && ec.index() == -1) {
+					throw new NullPointerException(
+							"Index must be intialized at annotation level for field " + fieldName);
+				} else {
+					mapping.put(ec.index(), fieldName);
+				}
+			} catch (NullPointerException ex) {
+				if (!Objects.isNull(ex.getMessage())) {
+					System.out.println("Error : " + ex.getMessage());
+				}
+			}
+		}
 
-    
-    public static Map<Integer,String> getColumnIndexToPropertyMap(Class<?> beanType) {
-        // Sanity checks
-        if (beanType == null) {
-            throw new IllegalArgumentException("getColumnToIndexMap :: Invalid ExcelBean type - " + beanType);
-        }
+		// Methods
+		Method[] methods = beanType.getDeclaredMethods();
+		for (Method m : methods) {
+			String fieldName = Beans.getFieldName(m);
 
-        // Property to Column Index Mapping
-        final Map<Integer,String> mapping = new HashMap<Integer,String>();
+			SheetColumn ec = m.getAnnotation(SheetColumn.class);
 
-        // Fields
-        Field[] fields = beanType.getDeclaredFields();
-        for (Field f : fields) {
-            String fieldName = f.getName();
+			try {
+				if (ec != null && ec.index() == -1) {
+					throw new NullPointerException(
+							"Index must be intialized at annotation level for field " + fieldName);
+				} else {
+					mapping.put(ec.index(), fieldName);
+				}
+			} catch (NullPointerException ex) {
+				if (!Objects.isNull(ex.getMessage())) {
+					System.out.println("Error : " + ex.getMessage());
+				}
+			}
+		}
 
-            SheetColumn ec = f.getAnnotation(SheetColumn.class);
-            
-            if (ec != null) {
-                int index = ec.index();
-                mapping.put(index,fieldName);
-            }
-        }
-
-        // Methods
-        Method[] methods = beanType.getDeclaredMethods();
-        for (Method m : methods) {
-            String fieldName = Beans.getFieldName(m);
-
-            SheetColumn ec = m.getAnnotation(SheetColumn.class);
-
-            if (ec != null) {
-                int index = ec.index();
-                mapping.put(index,fieldName);
-            }
-        }
-
-        LOGGER.info("Bean property to Excel Column of - {} : {}", beanType, mapping);
-        return Collections.unmodifiableMap(mapping);
-    }
-
+		LOGGER.info("Java Bean Index to Bean Property - {} : {}", beanType, mapping);
+		return mapping;
+	}
 
 }

@@ -1,22 +1,24 @@
 package io.github.millij.bean;
 
+import io.github.millij.poi.ss.model.annotations.Sheet;
 import io.github.millij.poi.ss.model.annotations.SheetColumn;
 
+@Sheet
 public class Emp_indexed 
 {
 	private String id;
 	private String name;
 
-	@SheetColumn(value="Age",index=4)
+	@SheetColumn(value="Age",index=2)
 	private Integer age;
 
-	@SheetColumn(value="Gender")
+	@SheetColumn(value="Gender",index=3)
 	private String gender;
 
-	@SheetColumn(value="Height (mts)",index=2)
+	@SheetColumn(value="Height (mts)",index=4)
 	private Double height;
 	
-	@SheetColumn(value="Address")
+	@SheetColumn(value="Address",index=5)
 	private String address;
 	
 	
@@ -38,7 +40,7 @@ public class Emp_indexed
 	
 	
 	
-	@SheetColumn(value="ID")
+	@SheetColumn(value="ID",index=0)
 	public String getId() {
 		return id;
 	}
@@ -47,7 +49,7 @@ public class Emp_indexed
 		this.id = id;
 	}
 
-	@SheetColumn(value="Name",index=5)
+	@SheetColumn(value="Name",index=1)
 	public String getName() {
 		return name;
 	}
