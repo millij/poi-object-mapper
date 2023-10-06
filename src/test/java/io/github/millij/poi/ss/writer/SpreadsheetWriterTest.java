@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,7 +46,7 @@ public class SpreadsheetWriterTest {
     // ------------------------------------------------------------------------
 
     @Test
-    public void test_write_xlsx_single_sheet() throws IOException, InvalidFormatException {
+    public void test_write_xlsx_single_sheet() throws IOException {
         final String filepath_output_file = _path_test_output.concat("single_sheet.xlsx");
 
         // Excel Writer
@@ -62,12 +61,11 @@ public class SpreadsheetWriterTest {
 
         // Write
         gew.addSheet(Employee.class, employees);
-                
         gew.write();
     }
 
     @Test
-    public void test_write_xlsx_single_sheet_custom_headers() throws IOException, InvalidFormatException {
+    public void test_write_xlsx_single_sheet_custom_headers() throws IOException {
         final String filepath_output_file = _path_test_output.concat("single_sheet_custom_headers.xlsx");
 
         // Excel Writer
@@ -91,7 +89,7 @@ public class SpreadsheetWriterTest {
 
 
     @Test
-    public void test_write_xlsx_multiple_sheets() throws IOException, InvalidFormatException {
+    public void test_write_xlsx_multiple_sheets() throws IOException {
         final String filepath_output_file = _path_test_output.concat("multiple_sheets.xlsx");
 
         // Excel Writer

@@ -4,7 +4,7 @@ import io.github.millij.poi.ss.model.annotations.Sheet;
 import io.github.millij.poi.ss.model.annotations.SheetColumn;
 
 
-@Sheet("Employee")
+@Sheet
 public class Employee {
 
     // Note that Id and Name are annotated at name level

@@ -25,8 +25,8 @@ public class DateTest {
         SpreadsheetWriter gew = new SpreadsheetWriter(filepath_output_file);
 
         // Schedules
-        schedules.add(new Schedule("Monday", "02/11/2001"));
-        schedules.add(new Schedule("Friday", "16/09/2023"));
+        schedules.add(new Schedule("Friday", "02/11/2001"));
+        schedules.add(new Schedule("Saturday", "16/09/2023"));
 
         gew.addSheet(Schedule.class, schedules);
         gew.write();
