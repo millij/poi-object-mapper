@@ -6,9 +6,11 @@ import io.github.millij.poi.util.Spreadsheet;
 import io.github.millij.poi.ss.reader.SpreadsheetReader;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -30,264 +32,263 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 @Deprecated
 public class SpreadsheetWriter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SpreadsheetWriter.class);
-    // private static final String DEFAULT_DATE_FORMAT = "dd/MM/yyyy";
+	private static final Logger LOGGER = LoggerFactory.getLogger(SpreadsheetWriter.class);
+	// private static final String DEFAULT_DATE_FORMAT = "dd/MM/yyyy";
+
+	private XSSFWorkbook workbook;
+	private OutputStream outputStrem;
+	//private String filepath;
+
+	// Constructors
+	// ------------------------------------------------------------------------
+
+	public SpreadsheetWriter(String filepath) throws IOException {
+		this(filepath, new File(filepath));
+
+	}
+
+	public SpreadsheetWriter(String filepath, File file) throws IOException {
+		this(filepath, new FileInputStream(file));
+	}
 
-    private final XSSFWorkbook workbook;
-    private final OutputStream outputStrem;
+	public SpreadsheetWriter(String filepath, InputStream inputStream) throws FileNotFoundException, IOException {
+		super();
+		try {
+			this.workbook = new XSSFWorkbook(inputStream);
+		}catch(Exception ex) {
+			LOGGER.error("File in the specified path is empty. Created new Workbook.");
+			this.workbook = new XSSFWorkbook();
+		}
+		
+		this.outputStrem = new FileOutputStream(new File(filepath));
+	}
 
+	// Methods
+	// ------------------------------------------------------------------------
+
+	// Sheet :: Add
 
-    // Constructors
-    // ------------------------------------------------------------------------
+	public <EB> void addSheet(Class<EB> beanType, List<EB> rowObjects) {
+		// Sheet Headers
+		List<String> headers = Spreadsheet.getColumnNames(beanType);
+
+		this.addSheet(beanType, rowObjects, headers);
+	}
+
+	public <EB> void addSheet(Class<EB> beanType, List<EB> rowObjects, List<String> headers) {
+		// SheetName
+		Sheet sheet = beanType.getAnnotation(Sheet.class);
+		String sheetName = sheet != null ? sheet.value() : null;
+
+		this.addSheet(beanType, rowObjects, headers, sheetName);
+	}
+
+	public <EB> void addSheet(Class<EB> beanType, List<EB> rowObjects, String sheetName) {
+		// Sheet Headers
+		List<String> headers = Spreadsheet.getColumnNames(beanType);
+
+		this.addSheet(beanType, rowObjects, headers, sheetName);
+	}
+
+	public <EB> void addSheet(Class<EB> beanType, List<EB> rowObjects, List<String> headers, String sheetName) {
+		// Sanity checks
+		if (beanType == null) {
+			throw new IllegalArgumentException("GenericExcelWriter :: ExcelBean type should not be null");
+		}
+
+		if (CollectionUtils.isEmpty(rowObjects)) {
+			LOGGER.error("Skipping excel sheet writing as the ExcelBean collection is empty");
+			return;
+		}
 
-    public SpreadsheetWriter(String filepath) throws FileNotFoundException {
-        this(new File(filepath));
-    }
+		if (CollectionUtils.isEmpty(headers)) {
+			LOGGER.error("Skipping excel sheet writing as the headers collection is empty");
+			return;
+		}
+
+		try {
+			XSSFSheet exSheet = workbook.getSheet(sheetName);
+			int sheetCount = workbook.getNumberOfSheets();
+			if (exSheet != null) {
+				String errMsg = String.format("A Sheet with the passed name already exists : %s", sheetName);
+				LOGGER.info(errMsg);
+				sheetName = "Sheet" + Integer.toString(sheetCount + 1);
+				LOGGER.info("Created new Sheet named : " + sheetName);
+			}
 
-    public SpreadsheetWriter(File file) throws FileNotFoundException {
-        this(new FileOutputStream(file));
-    }
+			XSSFSheet sheet = StringUtils.isEmpty(sheetName) ? workbook.createSheet() : workbook.createSheet(sheetName);
+			LOGGER.debug("Added new Sheet[name] to the workbook : {}", sheet.getSheetName());
 
-    public SpreadsheetWriter(OutputStream outputStream) {
-        super();
+			// Header
+			XSSFRow headerRow = sheet.createRow(0);
+			for (int i = 0; i < headers.size(); i++) {
+				XSSFCell cell = headerRow.createCell(i);
+				cell.setCellValue(headers.get(i));
+			}
 
-        this.workbook = new XSSFWorkbook();
-        this.outputStrem = outputStream;
-    }
+			// Data Rows
+			final Map<String, List<String>> rowsData = this.prepareSheetRowsData(headers, rowObjects);
 
+			final Map<String, String> dateFormatsMap = this.getFormats(beanType);
 
-    // Methods
-    // ------------------------------------------------------------------------
+			final List<String> formulaCols = this.getFormulaCols(beanType);
 
+			for (int i = 0, rowNum = 1; i < rowObjects.size(); i++, rowNum++) {
+				final XSSFRow row = sheet.createRow(rowNum);
 
-    // Sheet :: Add
+				int cellNo = 0;
+				for (String key : rowsData.keySet()) {
+					Cell cell = row.createCell(cellNo);
 
-    public <EB> void addSheet(Class<EB> beanType, List<EB> rowObjects) {
-        // Sheet Headers
-        List<String> headers = Spreadsheet.getColumnNames(beanType);
+					String keyFormat = dateFormatsMap.get(key);
+					if (keyFormat != null) {
 
-        this.addSheet(beanType, rowObjects, headers);
-    }
+						try {
 
-    public <EB> void addSheet(Class<EB> beanType, List<EB> rowObjects, List<String> headers) {
-        // SheetName
-        Sheet sheet = beanType.getAnnotation(Sheet.class);
-        String sheetName = sheet != null ? sheet.value() : null;
+							String value = rowsData.get(key).get(i);
 
-        this.addSheet(beanType, rowObjects, headers, sheetName);
-    }
+							LocalDate localDate = LocalDate.parse(value,
+									DateTimeFormatter.ofPattern(SpreadsheetReader.DEFAULT_DATE_FORMAT));
 
-    public <EB> void addSheet(Class<EB> beanType, List<EB> rowObjects, String sheetName) {
-        // Sheet Headers
-        List<String> headers = Spreadsheet.getColumnNames(beanType);
+							DateTimeFormatter formatter = DateTimeFormatter.ofPattern(keyFormat);
+							String formattedDateTime = localDate.format(formatter);
 
-        this.addSheet(beanType, rowObjects, headers, sheetName);
-    }
+							cell.setCellValue(formattedDateTime);
+							cellNo++;
 
-    public <EB> void addSheet(Class<EB> beanType, List<EB> rowObjects, List<String> headers, String sheetName) {
-        // Sanity checks
-        if (beanType == null) {
-            throw new IllegalArgumentException("GenericExcelWriter :: ExcelBean type should not be null");
-        }
+						} catch (Exception ex) {
+							String errMsg = String.format("Error while preparing Date with passed date format : %s",
+									ex.getMessage());
+							LOGGER.error(errMsg, ex);
+						}
 
-        if (CollectionUtils.isEmpty(rowObjects)) {
-            LOGGER.error("Skipping excel sheet writing as the ExcelBean collection is empty");
-            return;
-        }
+					} else if (formulaCols.contains(key)) {
+						String value = rowsData.get(key).get(i);
+						cell.setCellFormula(value);
+						cellNo++;
 
-        if (CollectionUtils.isEmpty(headers)) {
-            LOGGER.error("Skipping excel sheet writing as the headers collection is empty");
-            return;
-        }
+					} else {
+						String value = rowsData.get(key).get(i);
+						cell.setCellValue(value);
+						cellNo++;
+					}
+				}
+			}
 
-        try {
-            XSSFSheet exSheet = workbook.getSheet(sheetName);
-            if (exSheet != null) {
-                String errMsg = String.format("A Sheet with the passed name already exists : %s", sheetName);
-                throw new IllegalArgumentException(errMsg);
-            }
+		} catch (Exception ex) {
+			String errMsg = String.format("Error while preparing sheet with passed row objects : %s", ex.getMessage());
+			LOGGER.error(errMsg, ex);
+		}
+	}
 
-            XSSFSheet sheet = StringUtils.isEmpty(sheetName) ? workbook.createSheet() : workbook.createSheet(sheetName);
-            LOGGER.debug("Added new Sheet[name] to the workbook : {}", sheet.getSheetName());
+	// Sheet :: Append to existing
 
-            // Header
-            XSSFRow headerRow = sheet.createRow(0);
-            for (int i = 0; i < headers.size(); i++) {
-                XSSFCell cell = headerRow.createCell(i);
-                cell.setCellValue(headers.get(i));
-            }
+	// Write
 
-            // Data Rows
-            final Map<String, List<String>> rowsData = this.prepareSheetRowsData(headers, rowObjects);
-            
-            final Map<String, String> dateFormatsMap = this.getFormats(beanType);
+	public void write() throws IOException {
+		workbook.write(outputStrem);
+		workbook.close();
+	}
 
-            final List<String> formulaCols = this.getFormulaCols(beanType);
-            
-            for (int i = 0, rowNum = 1; i < rowObjects.size(); i++, rowNum++) {
-                final XSSFRow row = sheet.createRow(rowNum);
+	// Private Methods
+	// ------------------------------------------------------------------------
 
-                int cellNo = 0;
-                for (String key : rowsData.keySet()) {
-                    Cell cell = row.createCell(cellNo);
+	private <EB> Map<String, List<String>> prepareSheetRowsData(List<String> headers, List<EB> rowObjects)
+			throws Exception {
 
-                    String keyFormat = dateFormatsMap.get(key);
-                    if (keyFormat != null) {
+		final Map<String, List<String>> sheetData = new LinkedHashMap<String, List<String>>();
 
-                        try {
+		// Iterate over Objects
+		for (EB excelBean : rowObjects) {
+			Map<String, String> row = Spreadsheet.asRowDataMap(excelBean, headers);
 
-                            String value = rowsData.get(key).get(i);
+			for (String header : headers) {
+				List<String> data = sheetData.containsKey(header) ? sheetData.get(header) : new ArrayList<String>();
+				String value = row.get(header) != null ? row.get(header) : "";
+				data.add(value);
 
-                            LocalDate localDate = LocalDate.parse(value,
-                                    DateTimeFormatter.ofPattern(SpreadsheetReader.DEFAULT_DATE_FORMAT));
+				sheetData.put(header, data);
+			}
+		}
 
-                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(keyFormat);
-                            String formattedDateTime = localDate.format(formatter);
+		return sheetData;
+	}
 
-                            cell.setCellValue(formattedDateTime);
-                            cellNo++;
+	public static Map<String, String> getFormats(Class<?> beanType) {
 
-                        } catch (Exception ex) {
-                            String errMsg = String.format("Error while preparing Date with passed date format : %s", ex.getMessage());
-                            LOGGER.error(errMsg, ex);
-                        }
+		if (beanType == null) {
+			throw new IllegalArgumentException("getColumnToPropertyMap :: Invalid ExcelBean type - " + beanType);
+		}
 
-                    } else if (formulaCols.contains(key)) {
-                        String value = rowsData.get(key).get(i);
-                        cell.setCellFormula(value);
-                        cellNo++;
+		Map<String, String> headFormatMap = new HashMap<String, String>();
 
-                    } else {
-                        String value = rowsData.get(key).get(i);
-                        cell.setCellValue(value);
-                        cellNo++;
-                    }
-                }
-            }
+		// Fields
+		final Field[] fields = beanType.getDeclaredFields();
 
-        } catch (Exception ex) {
-            String errMsg = String.format("Error while preparing sheet with passed row objects : %s", ex.getMessage());
-            LOGGER.error(errMsg, ex);
-        }
-    }
+		for (Field f : fields) {
 
+			SheetColumn ec = f.getAnnotation(SheetColumn.class);
 
-    // Sheet :: Append to existing
+			if (ec != null && StringUtils.isNotEmpty(ec.value())) {
+				if (ec.isFormatted())
+					headFormatMap.put(ec.value(), ec.format());
+			}
+		}
 
+		// Methods
+		final Method[] methods = beanType.getDeclaredMethods();
 
+		for (Method m : methods) {
 
-    // Write
+			SheetColumn ec = m.getAnnotation(SheetColumn.class);
 
-    public void write() throws IOException {
-        workbook.write(outputStrem);
-        workbook.close();
-    }
+			if (ec != null && StringUtils.isNotEmpty(ec.value())) {
+				if (ec.isFormatted())
+					headFormatMap.put(ec.value(), ec.format());
+			}
+		}
 
+		return headFormatMap;
+	}
 
-    // Private Methods
-    // ------------------------------------------------------------------------
+	public static List<String> getFormulaCols(Class<?> beanType) {
+		if (beanType == null) {
+			throw new IllegalArgumentException("getColumnToPropertyMap :: Invalid ExcelBean type - " + beanType);
+		}
 
-    private <EB> Map<String, List<String>> prepareSheetRowsData(List<String> headers, List<EB> rowObjects)
-            throws Exception {
+		List<String> formulaCols = new ArrayList<String>();
 
-        final Map<String, List<String>> sheetData = new LinkedHashMap<String, List<String>>();
+		// Fields
+		final Field[] fields = beanType.getDeclaredFields();
 
-        // Iterate over Objects
-        for (EB excelBean : rowObjects) {
-            Map<String, String> row = Spreadsheet.asRowDataMap(excelBean, headers);
+		for (Field f : fields) {
 
-            for (String header : headers) {
-                List<String> data = sheetData.containsKey(header) ? sheetData.get(header) : new ArrayList<String>();
-                String value = row.get(header) != null ? row.get(header) : "";
-                data.add(value);
+			SheetColumn ec = f.getAnnotation(SheetColumn.class);
 
-                sheetData.put(header, data);
-            }
-        }
+			if (ec != null && StringUtils.isNotEmpty(ec.value())) {
+				if (ec.isFormula())
+					formulaCols.add(ec.value());
+			}
+		}
 
-        return sheetData;
-    }
+		// Methods
+		final Method[] methods = beanType.getDeclaredMethods();
 
+		for (Method m : methods) {
 
-    public static Map<String, String> getFormats(Class<?> beanType) {
+			SheetColumn ec = m.getAnnotation(SheetColumn.class);
 
-        if (beanType == null) {
-            throw new IllegalArgumentException("getColumnToPropertyMap :: Invalid ExcelBean type - " + beanType);
-        }
+			if (ec != null && StringUtils.isNotEmpty(ec.value())) {
+				if (ec.isFormula())
+					formulaCols.add(ec.value());
+			}
+		}
 
-        Map<String, String> headFormatMap = new HashMap<String, String>();
+		return formulaCols;
 
-        // Fields
-        final Field[] fields = beanType.getDeclaredFields();
-
-        for (Field f : fields) {
-
-            SheetColumn ec = f.getAnnotation(SheetColumn.class);
-
-            if (ec != null && StringUtils.isNotEmpty(ec.value())) {
-                if (ec.isFormatted())
-                    headFormatMap.put(ec.value(), ec.format());
-            }
-        }
-
-        // Methods
-        final Method[] methods = beanType.getDeclaredMethods();
-
-        for (Method m : methods) {
-
-            SheetColumn ec = m.getAnnotation(SheetColumn.class);
-
-            if (ec != null && StringUtils.isNotEmpty(ec.value())) {
-                if (ec.isFormatted())
-                    headFormatMap.put(ec.value(), ec.format());
-            }
-        }
-
-        return headFormatMap;
-    }
-
-
-    public static List<String> getFormulaCols(Class<?> beanType) {
-        if (beanType == null) {
-            throw new IllegalArgumentException("getColumnToPropertyMap :: Invalid ExcelBean type - " + beanType);
-        }
-
-        List<String> formulaCols = new ArrayList<String>();
-
-        // Fields
-        final Field[] fields = beanType.getDeclaredFields();
-
-        for (Field f : fields) {
-
-            SheetColumn ec = f.getAnnotation(SheetColumn.class);
-
-            if (ec != null && StringUtils.isNotEmpty(ec.value())) {
-                if (ec.isFormula())
-                    formulaCols.add(ec.value());
-            }
-        }
-
-        // Methods
-        final Method[] methods = beanType.getDeclaredMethods();
-
-        for (Method m : methods) {
-
-            SheetColumn ec = m.getAnnotation(SheetColumn.class);
-
-            if (ec != null && StringUtils.isNotEmpty(ec.value())) {
-                if (ec.isFormula())
-                    formulaCols.add(ec.value());
-            }
-        }
-
-        return formulaCols;
-
-    }
-
-
+	}
 
 }
