@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -182,6 +183,9 @@ public final class Spreadsheet {
                 }
 
                 Object propValue = cellValues.get(cellName);
+                if(Objects.isNull(propValue)) {
+                	propValue = "";
+                }
                 try {
                     // Set the property value in the current row object bean
                     BeanUtils.setProperty(rowBean, propName, propValue);
