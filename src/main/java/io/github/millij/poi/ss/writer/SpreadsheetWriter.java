@@ -130,8 +130,6 @@ public class SpreadsheetWriter {
 
             final Map<String, String> dateFormatsMap = this.getFormats(beanType);
 
-            final List<String> formulaCols = this.getFormulaCols(beanType);
-
             for (int i = 0, rowNum = 1; i < rowObjects.size(); i++, rowNum++) {
                 final XSSFRow row = sheet.createRow(rowNum);
 
@@ -143,7 +141,7 @@ public class SpreadsheetWriter {
                     if (keyFormat != null) {
 
                         final String value = rowsData.get(key).get(i);
-                        Date date = null;
+                        Date date;
 
                         try {
                             // Date Check
@@ -172,14 +170,6 @@ public class SpreadsheetWriter {
                         cell.setCellValue(formattedDate);
                         cellNo++;
                         continue;
-                    }
-
-                    if (formulaCols.contains(key)) {
-                        String value = rowsData.get(key).get(i);
-                        cell.setCellFormula(value);
-                        cellNo++;
-                        continue;
-
                     }
                     String value = rowsData.get(key).get(i);
                     cell.setCellValue(value);
@@ -272,42 +262,4 @@ public class SpreadsheetWriter {
         }
         return headFormatMap;
     }
-
-    public static List<String> getFormulaCols(Class<?> beanType) {
-        if (beanType == null) {
-            throw new IllegalArgumentException("getColumnToPropertyMap :: Invalid ExcelBean type - " + beanType);
-        }
-
-        List<String> formulaCols = new ArrayList<String>();
-
-        // Fields
-        final Field[] fields = beanType.getDeclaredFields();
-
-        for (Field f : fields) {
-
-            SheetColumn ec = f.getAnnotation(SheetColumn.class);
-
-            if (ec != null && StringUtils.isNotEmpty(ec.value())) {
-                if (ec.isFormula())
-                    formulaCols.add(ec.value());
-            }
-        }
-
-        // Methods
-        final Method[] methods = beanType.getDeclaredMethods();
-
-        for (Method m : methods) {
-
-            SheetColumn ec = m.getAnnotation(SheetColumn.class);
-
-            if (ec != null && StringUtils.isNotEmpty(ec.value())) {
-                if (ec.isFormula())
-                    formulaCols.add(ec.value());
-            }
-        }
-
-        return formulaCols;
-
-    }
-
 }

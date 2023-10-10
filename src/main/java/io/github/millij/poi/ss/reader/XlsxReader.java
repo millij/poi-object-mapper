@@ -231,7 +231,6 @@ public class XlsxReader extends AbstractSpreadsheetReader {
                     rowDataMap.put(cellColName, cell.getBooleanCellValue());
                     break;
                 case FORMULA:
-                    rowDataMap.put(cellColName, cell.getCellFormula());
                 case BLANK:
                 case ERROR:
                     break;

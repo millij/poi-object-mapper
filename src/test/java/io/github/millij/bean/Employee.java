@@ -23,7 +23,7 @@ public class Employee {
     @SheetColumn("Address")
     private String address;
 
-    @SheetColumn(value = "Formula", isFormula = true)
+    @SheetColumn(value = "Formula")
     private String formula;
 
     @SheetColumn(value = "Date", format = "yyyy/MM/dd")
