@@ -199,19 +199,8 @@ public class XlsReader extends AbstractSpreadsheetReader {
                     break;
                 case NUMERIC:
                     if (DateUtil.isCellDateFormatted(cell)) {
-
-                        final Map<String, String> formats = SpreadsheetWriter.getFormats(beanClz);
-                        final String cellFormat = formats.get(cellColName);
-
                         final Date date = cell.getDateCellValue();
-                        final LocalDateTime localDateTime =
-                                LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
-
-                        final DateTimeFormatter formatter = cellFormat != null ? DateTimeFormatter.ofPattern(cellFormat)
-                                : DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT);
-
-                        final String formattedDateTime = localDateTime.format(formatter);
-                        rowDataMap.put(cellColName, formattedDateTime);
+                        rowDataMap.put(cellColName, date);
                         break;
 
                     } else {
