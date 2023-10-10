@@ -26,8 +26,6 @@ public @interface SheetColumn {
      */
     String value() default "";
 
-    boolean isFormatted() default false;
-
     String format() default "dd/MM/yyyy";
 
     boolean isFormula() default false;
