@@ -119,7 +119,7 @@ public class SpreadsheetWriter {
             LOGGER.debug("Added new Sheet[name] to the workbook : {}", sheet.getSheetName());
 
             // Header
-            XSSFRow headerRow = sheet.createRow(0);
+            final XSSFRow headerRow = sheet.createRow(0);
             for (int i = 0; i < headers.size(); i++) {
                 XSSFCell cell = headerRow.createCell(i);
                 cell.setCellValue(headers.get(i));
@@ -202,7 +202,7 @@ public class SpreadsheetWriter {
 
         // Iterate over Objects
         for (EB excelBean : rowObjects) {
-            Map<String, String> row = Spreadsheet.asRowDataMap(excelBean, headers);
+            final Map<String, String> row = Spreadsheet.asRowDataMap(excelBean, headers);
 
             for (String header : headers) {
                 List<String> data = sheetData.containsKey(header) ? sheetData.get(header) : new ArrayList<String>();

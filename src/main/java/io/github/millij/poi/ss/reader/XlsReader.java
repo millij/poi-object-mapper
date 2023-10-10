@@ -88,7 +88,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
         }
 
         try {
-            HSSFWorkbook wb = new HSSFWorkbook(is);
+            final HSSFWorkbook wb = new HSSFWorkbook(is);
             final HSSFSheet sheet = wb.getSheetAt(sheetNo);
 
             // Process Sheet
@@ -109,11 +109,11 @@ public class XlsReader extends AbstractSpreadsheetReader {
 
     protected <T> void processSheet(Class<T> beanClz, HSSFSheet sheet, int headerRowNo, RowListener<T> eventHandler) {
         // Header column - name mapping
-        HSSFRow headerRow = sheet.getRow(headerRowNo);
-        Map<Integer, String> headerMap = this.extractCellHeaderMap(headerRow);
+        final HSSFRow headerRow = sheet.getRow(headerRowNo);
+        final Map<Integer, String> headerMap = this.extractCellHeaderMap(headerRow);
 
         // Bean Properties - column name mapping
-        Map<String, String> cellPropMapping = Spreadsheet.getColumnToPropertyMap(beanClz);
+        final Map<String, String> cellPropMapping = Spreadsheet.getColumnToPropertyMap(beanClz);
 
         Iterator<Row> rows = sheet.rowIterator();
         while (rows.hasNext()) {
@@ -151,7 +151,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
         while (cells.hasNext()) {
             HSSFCell cell = (HSSFCell) cells.next();
 
-            int cellCol = cell.getColumnIndex();
+            final int cellCol = cell.getColumnIndex();
 
             // Process cell value
             switch (cell.getCellTypeEnum()) {
@@ -189,8 +189,8 @@ public class XlsReader extends AbstractSpreadsheetReader {
         while (cells.hasNext()) {
             HSSFCell cell = (HSSFCell) cells.next();
 
-            int cellCol = cell.getColumnIndex();
-            String cellColName = columnHeaderMap.get(cellCol);
+            final int cellCol = cell.getColumnIndex();
+            final String cellColName = columnHeaderMap.get(cellCol);
 
             // Process cell value
             switch (cell.getCellTypeEnum()) {

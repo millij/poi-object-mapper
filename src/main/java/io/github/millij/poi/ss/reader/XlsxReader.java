@@ -106,7 +106,7 @@ public class XlsxReader extends AbstractSpreadsheetReader {
         }
 
         try {
-            XSSFWorkbook wb = new XSSFWorkbook(is);
+            final XSSFWorkbook wb = new XSSFWorkbook(is);
             final XSSFSheet sheet = wb.getSheetAt(sheetNo);
 
             // Process Sheet
@@ -136,7 +136,7 @@ public class XlsxReader extends AbstractSpreadsheetReader {
         while (rows.hasNext()) {
             // Process Row Data
             XSSFRow row = (XSSFRow) rows.next();
-            int rowNum = row.getRowNum();
+            final int rowNum = row.getRowNum();
             if (rowNum == 0) {
                 continue; // Skip Header row
             }
@@ -167,7 +167,7 @@ public class XlsxReader extends AbstractSpreadsheetReader {
         while (cells.hasNext()) {
             XSSFCell cell = (XSSFCell) cells.next();
 
-            int cellCol = cell.getColumnIndex();
+            final int cellCol = cell.getColumnIndex();
 
             // Process cell value
             switch (cell.getCellTypeEnum()) {
@@ -208,8 +208,8 @@ public class XlsxReader extends AbstractSpreadsheetReader {
         while (cells.hasNext()) {
             XSSFCell cell = (XSSFCell) cells.next();
 
-            int cellCol = cell.getColumnIndex();
-            String cellColName = columnHeaderMap.get(cellCol);
+            final int cellCol = cell.getColumnIndex();
+            final String cellColName = columnHeaderMap.get(cellCol);
 
             // Process cell value
             switch (cell.getCellTypeEnum()) {
