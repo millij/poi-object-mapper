@@ -1,5 +1,8 @@
 package io.github.millij.bean;
 
+import java.time.LocalDate;
+import java.util.Date;
+
 // import java.util.Date;
 
 import io.github.millij.poi.ss.model.annotations.Sheet;
@@ -12,14 +15,24 @@ public class Schedule {
     @SheetColumn("Day")
     private String day;
 
-    @SheetColumn(value = "Date", isFormatted = true, format = "yyyy/MM/dd")
-    private String date;
+    @SheetColumn(value = "Date", format = "dd/MM/yyyy")
+    private Date date;
 
-    public Schedule(String day, String date) {
+    @SheetColumn(value = "localDate", format = "dd/MM/yyyy")
+    private LocalDate localDate;
+
+    // Constructor
+    // -------------------------------------------------------------------------
+
+    public Schedule(String day, Date date, LocalDate localDate) {
         super();
         this.day = day;
         this.date = date;
+        this.localDate = localDate;
     }
+
+    // Getters and Setters
+    // -------------------------------------------------------------------------
 
     public String getDay() {
         return day;
@@ -29,17 +42,27 @@ public class Schedule {
         this.day = day;
     }
 
-    public String getDate() {
+    public Date getDate() {
         return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(Date date) {
         this.date = date;
     }
 
+    public LocalDate getLocalDate() {
+        return localDate;
+    }
+
+    public void setLocalDate(LocalDate localDate) {
+        this.localDate = localDate;
+    }
+
+    // Object Methods
+    // ------------------------------------------------------------------------
     @Override
     public String toString() {
-        return "Schedules [day=" + day + ", date=" + date + "]";
+        return "Schedule [day=" + day + ", date=" + date + ", localDate=" + localDate + "]";
     }
 
 }

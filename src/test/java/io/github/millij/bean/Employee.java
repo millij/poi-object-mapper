@@ -26,7 +26,7 @@ public class Employee {
     @SheetColumn(value = "Formula", isFormula = true)
     private String formula;
 
-    @SheetColumn(value = "Date", isFormatted = true, format = "yyyy/MM/dd")
+    @SheetColumn(value = "Date", format = "yyyy/MM/dd")
     private String date;
 
     // Constructors
@@ -125,7 +125,7 @@ public class Employee {
     @Override
     public String toString() {
         return "Employee [id=" + id + ", name=" + name + ", age=" + age + ", gender=" + gender + ", height=" + height
-                + ", date=" + date + ", Address =" + address + ", Formula=" + formula + "]";
+                + ", date=" + date + ", Formula=" + formula + "]";
     }
 
 }
