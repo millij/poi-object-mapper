@@ -8,8 +8,11 @@ import io.github.millij.poi.ss.writer.SpreadsheetWriter;
 import io.github.millij.poi.util.Spreadsheet;
 
 import java.io.InputStream;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
@@ -199,15 +202,28 @@ public class XlsReader extends AbstractSpreadsheetReader {
                     break;
                 case NUMERIC:
                     if (DateUtil.isCellDateFormatted(cell)) {
-                        final Date date = cell.getDateCellValue();
-                        rowDataMap.put(cellColName, date);
-                        break;
 
-                    } else {
-                        rowDataMap.put(cellColName, cell.getNumericCellValue());
-                        break;
+                        // Checking Date or LocalDate
+                        String headerType = AbstractSpreadsheetReader.getReturnType(beanClz, cellColName);
+                        if (headerType.equals(Date.class.getName())) {
+                            final Date date = cell.getDateCellValue();
+                            rowDataMap.put(cellColName, date);
+                            break;
+                        }
+                        if (headerType.equals(LocalDate.class.getName())) {
+
+                            final Date ldate = cell.getDateCellValue();
+
+                            // Convert Date to LocalDate
+                            Instant instant = ldate.toInstant();
+                            ZoneId zoneId = ZoneId.systemDefault();
+                            ZonedDateTime zonedDateTime = instant.atZone(zoneId);
+                            LocalDate localDate = zonedDateTime.toLocalDate();
+
+                            rowDataMap.put(cellColName, localDate);
+                            break;
+                        }
                     }
-
                 case BOOLEAN:
                     rowDataMap.put(cellColName, cell.getBooleanCellValue());
                     break;

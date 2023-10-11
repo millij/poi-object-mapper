@@ -21,6 +21,8 @@ import java.util.Objects;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -110,6 +112,8 @@ public class SpreadsheetWriter {
 
         try {
             XSSFSheet exSheet = workbook.getSheet(sheetName);
+            final CellStyle cellStyle = workbook.createCellStyle();
+            final CreationHelper createHelper = workbook.getCreationHelper();
             if (exSheet != null) {
                 String errMsg = String.format("A Sheet with the passed name already exists : %s", sheetName);
                 throw new IllegalArgumentException(errMsg);
@@ -126,9 +130,9 @@ public class SpreadsheetWriter {
             }
 
             // Data Rows
-            final Map<String, List<String>> rowsData = this.prepareSheetRowsData(headers, rowObjects);
+            final Map<String, List<String>> rowsData = prepareSheetRowsData(headers, rowObjects);
 
-            final Map<String, String> dateFormatsMap = this.getFormats(beanType);
+            final Map<String, String> dateFormatsMap = getFormats(beanType);
 
             for (int i = 0, rowNum = 1; i < rowObjects.size(); i++, rowNum++) {
                 final XSSFRow row = sheet.createRow(rowNum);
@@ -147,10 +151,11 @@ public class SpreadsheetWriter {
                             // Date Check
                             final SimpleDateFormat formatter = new SimpleDateFormat(DATE_DEFAULT_FORMAT);
                             date = formatter.parse(value);
+
                         } catch (ParseException e) {
 
                             try {
-                                // Local Check
+                                // LocalDate Check
                                 final SimpleDateFormat formatter = new SimpleDateFormat(LOCAL_DATE_DEFAULT_FORMAT);
                                 date = formatter.parse(value);
                             } catch (ParseException ex) {
@@ -164,10 +169,10 @@ public class SpreadsheetWriter {
                             continue;
                         }
 
-                        final SimpleDateFormat formatter = new SimpleDateFormat(keyFormat);
-                        final String formattedDate = formatter.format(date);
+                        cellStyle.setDataFormat(createHelper.createDataFormat().getFormat(keyFormat));
+                        cell.setCellStyle(cellStyle);
 
-                        cell.setCellValue(formattedDate);
+                        cell.setCellValue(date);
                         cellNo++;
                         continue;
                     }
