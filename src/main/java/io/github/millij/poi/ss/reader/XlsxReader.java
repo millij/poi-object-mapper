@@ -240,10 +240,10 @@ public class XlsxReader extends AbstractSpreadsheetReader {
                             final Date ldate = cell.getDateCellValue();
 
                             // Convert Date to LocalDate
-                            Instant instant = ldate.toInstant();
-                            ZoneId zoneId = ZoneId.systemDefault();
-                            ZonedDateTime zonedDateTime = instant.atZone(zoneId);
-                            LocalDate localDate = zonedDateTime.toLocalDate();
+                            final Instant instant = ldate.toInstant();
+                            final ZoneId zoneId = ZoneId.systemDefault();
+                            final ZonedDateTime zonedDateTime = instant.atZone(zoneId);
+                            final LocalDate localDate = zonedDateTime.toLocalDate();
 
                             rowDataMap.put(cellColName, localDate);
                             break;
