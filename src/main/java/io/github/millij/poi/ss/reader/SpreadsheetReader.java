@@ -16,6 +16,7 @@ import java.util.List;
 public interface SpreadsheetReader {
 
 
+    public static final String DEFAULT_DATE_FORMAT = "dd/MM/yyyy";
     // Read with Custom RowListener
 
     /**

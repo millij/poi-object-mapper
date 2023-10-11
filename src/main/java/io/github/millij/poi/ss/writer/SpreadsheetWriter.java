@@ -40,7 +40,6 @@ import io.github.millij.poi.util.Spreadsheet;
 public class SpreadsheetWriter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SpreadsheetWriter.class);
-    // private static final String DEFAULT_DATE_FORMAT = "dd/MM/yyyy";
 
     // Default Formats
     private static final String DATE_DEFAULT_FORMAT = "EEE MMM dd HH:mm:ss zzz yyyy";

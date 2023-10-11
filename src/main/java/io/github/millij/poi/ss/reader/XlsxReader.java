@@ -53,7 +53,7 @@ public class XlsxReader extends AbstractSpreadsheetReader {
     public <T> void read(Class<T> beanClz, InputStream is, RowListener<T> listener) throws SpreadsheetReadException {
         // Sanity checks
         if (!isInstantiableType(beanClz)) {
-            throw new IllegalArgumentException("XlsxReader_ftDate :: Invalid bean type passed !");
+            throw new IllegalArgumentException("XlsxReader :: Invalid bean type passed !");
         }
 
         try {
