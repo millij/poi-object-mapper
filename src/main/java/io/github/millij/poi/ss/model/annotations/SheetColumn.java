@@ -25,16 +25,7 @@ public @interface SheetColumn {
      * @return column name/header.
      */
     String value() default "";
-    
     int index() default -1;
-    
-    
-//    boolean isFormatted() default false;
-//    String format() default "dd/MM/yyyy";
-//    
-//    boolean isFromula() default false;
-    
-     
 
     /**
      * Setting this to <code>false</code> will enable the null check on the Column values, to ensure
