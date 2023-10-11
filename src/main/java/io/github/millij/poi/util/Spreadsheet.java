@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -103,10 +104,54 @@ public final class Spreadsheet {
         // Bean Property to Column Mapping
         final Map<String, String> propToColumnMap = getPropertyToColumnNameMap(beanType);
 
+        final Map<Integer, String> indexToPropMap = getIndexToPropertyMap(beanType);
+
+        if (propToColumnMap.size() == indexToPropMap.size()) {
+
+            Set<Integer> indexSet = indexToPropMap.keySet();
+            List<Integer> indexList = new ArrayList<Integer>(indexSet);
+            Collections.sort(indexList);
+
+            List<String> indexedColumns = new ArrayList<String>();
+            for (Integer index : indexList) {
+                indexedColumns.add(propToColumnMap.get(indexToPropMap.get(index)));
+            }
+            return indexedColumns;
+        }
+
+
+
         final ArrayList<String> columnNames = new ArrayList<>(propToColumnMap.values());
         return columnNames;
     }
 
+
+    public static Map<Integer, String> getIndexToPropertyMap(Class<?> beanClz) {
+
+        Map<Integer, String> indexToPropMap = new HashMap<Integer, String>();
+
+        Field[] fields = beanClz.getDeclaredFields();
+        for (Field f : fields) {
+            if (!f.isAnnotationPresent(SheetColumn.class)) {
+                continue;
+            }
+            String fieldName = f.getName();
+            SheetColumn ec = f.getDeclaredAnnotation(SheetColumn.class);
+            indexToPropMap.put(ec.index(), StringUtils.isBlank(ec.value()) ? fieldName : ec.value());
+        }
+
+        Method[] methods = beanClz.getDeclaredMethods();
+        for (Method m : methods) {
+            if (!m.isAnnotationPresent(SheetColumn.class)) {
+                continue;
+            }
+            String fieldName = Beans.getFieldName(m);
+            SheetColumn ec = m.getDeclaredAnnotation(SheetColumn.class);
+            indexToPropMap.put(ec.index(), StringUtils.isBlank(ec.value()) ? fieldName : ec.value());
+        }
+
+        return indexToPropMap;
+    }
 
     
 
