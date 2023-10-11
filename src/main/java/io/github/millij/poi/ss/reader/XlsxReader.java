@@ -2,55 +2,31 @@ package io.github.millij.poi.ss.reader;
 
 import static io.github.millij.poi.util.Beans.isInstantiableType;
 
-
-
 import io.github.millij.poi.SpreadsheetReadException;
-import io.github.millij.poi.ss.handler.RowContentsHandler;
 import io.github.millij.poi.ss.handler.RowListener;
-import io.github.millij.poi.ss.model.annotations.SheetColumn;
-import io.github.millij.poi.ss.writer.SpreadsheetWriter;
-import io.github.millij.poi.util.Beans;
 import io.github.millij.poi.util.Spreadsheet;
 
 import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
-// import org.apache.poi.util.SAXHelper;
-import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;
-import org.apache.poi.xssf.eventusermodel.XSSFReader;
-import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
-import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler.SheetContentsHandler;
-import org.apache.poi.xssf.model.StylesTable;
+
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.ContentHandler;
-import org.xml.sax.InputSource;
-import org.xml.sax.XMLReader;
 
 
 /**
@@ -110,7 +86,7 @@ public class XlsxReader extends AbstractSpreadsheetReader {
             throws SpreadsheetReadException {
         // Sanity checks
         if (!isInstantiableType(beanClz)) {
-            throw new IllegalArgumentException("XlsReader :: Invalid bean type passed !");
+            throw new IllegalArgumentException("XlsxReader :: Invalid bean type passed !");
         }
 
         try {
