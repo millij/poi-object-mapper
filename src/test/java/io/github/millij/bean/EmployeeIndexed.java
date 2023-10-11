@@ -9,7 +9,7 @@ public class EmployeeIndexed {
     private String id;
     private String name;
 
-    @SheetColumn(value = "Age", index = 2)
+    @SheetColumn(value = "Age",index = 2)
     private Integer age;
 
     @SheetColumn(value = "Gender", index = 3)
