@@ -1,15 +1,25 @@
 package io.github.millij.poi.ss.reader;
 
 import static io.github.millij.poi.util.Beans.isInstantiableType;
+
 import io.github.millij.poi.SpreadsheetReadException;
 import io.github.millij.poi.ss.handler.RowListener;
+import io.github.millij.poi.ss.writer.SpreadsheetWriter;
 import io.github.millij.poi.util.Spreadsheet;
 
 import java.io.InputStream;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -69,7 +79,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
             LOGGER.error(errMsg, ex);
             throw new SpreadsheetReadException(errMsg, ex);
         }
-        
+
     }
 
     @Override
@@ -81,7 +91,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
         }
 
         try {
-            HSSFWorkbook wb = new HSSFWorkbook(is);
+            final HSSFWorkbook wb = new HSSFWorkbook(is);
             final HSSFSheet sheet = wb.getSheetAt(sheetNo);
 
             // Process Sheet
@@ -99,14 +109,14 @@ public class XlsReader extends AbstractSpreadsheetReader {
 
 
     // Sheet Process
-    
+
     protected <T> void processSheet(Class<T> beanClz, HSSFSheet sheet, int headerRowNo, RowListener<T> eventHandler) {
         // Header column - name mapping
-        HSSFRow headerRow = sheet.getRow(headerRowNo);
-        Map<Integer, String> headerMap = this.extractCellHeaderMap(headerRow);
-        
+        final HSSFRow headerRow = sheet.getRow(headerRowNo);
+        final Map<Integer, String> headerMap = this.extractCellHeaderMap(headerRow);
+
         // Bean Properties - column name mapping
-        Map<String, String> cellPropMapping = Spreadsheet.getColumnToPropertyMap(beanClz);
+        final Map<String, String> cellPropMapping = Spreadsheet.getColumnToPropertyMap(beanClz);
 
         Iterator<Row> rows = sheet.rowIterator();
         while (rows.hasNext()) {
@@ -117,7 +127,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
                 continue; // Skip Header row
             }
 
-            Map<String, Object> rowDataMap = this.extractRowDataAsMap(row, headerMap);
+            final Map<String, Object> rowDataMap = this.extractRowDataAsMap(beanClz, row, headerMap);
             if (rowDataMap == null || rowDataMap.isEmpty()) {
                 continue;
             }
@@ -144,7 +154,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
         while (cells.hasNext()) {
             HSSFCell cell = (HSSFCell) cells.next();
 
-            int cellCol = cell.getColumnIndex();
+            final int cellCol = cell.getColumnIndex();
 
             // Process cell value
             switch (cell.getCellTypeEnum()) {
@@ -169,7 +179,8 @@ public class XlsReader extends AbstractSpreadsheetReader {
         return cellHeaderMap;
     }
 
-    private Map<String, Object> extractRowDataAsMap(HSSFRow row, Map<Integer, String> columnHeaderMap) {
+    private <T> Map<String, Object> extractRowDataAsMap(Class<T> beanClz, HSSFRow row,
+            Map<Integer, String> columnHeaderMap) {
         // Sanity checks
         if (row == null) {
             return new HashMap<String, Object>();
@@ -181,8 +192,8 @@ public class XlsReader extends AbstractSpreadsheetReader {
         while (cells.hasNext()) {
             HSSFCell cell = (HSSFCell) cells.next();
 
-            int cellCol = cell.getColumnIndex();
-            String cellColName = columnHeaderMap.get(cellCol);
+            final int cellCol = cell.getColumnIndex();
+            final String cellColName = columnHeaderMap.get(cellCol);
 
             // Process cell value
             switch (cell.getCellTypeEnum()) {
@@ -190,8 +201,29 @@ public class XlsReader extends AbstractSpreadsheetReader {
                     rowDataMap.put(cellColName, cell.getStringCellValue());
                     break;
                 case NUMERIC:
-                    rowDataMap.put(cellColName, cell.getNumericCellValue());
-                    break;
+                    if (DateUtil.isCellDateFormatted(cell)) {
+
+                        // Checking Date or LocalDate
+                        String headerType = AbstractSpreadsheetReader.getReturnType(beanClz, cellColName);
+                        if (headerType.equals(Date.class.getName())) {
+                            final Date date = cell.getDateCellValue();
+                            rowDataMap.put(cellColName, date);
+                            break;
+                        }
+                        if (headerType.equals(LocalDate.class.getName())) {
+
+                            final Date ldate = cell.getDateCellValue();
+
+                            // Convert Date to LocalDate
+                            final Instant instant = ldate.toInstant();
+                            final ZoneId zoneId = ZoneId.systemDefault();
+                            final ZonedDateTime zonedDateTime = instant.atZone(zoneId);
+                            final LocalDate localDate = zonedDateTime.toLocalDate();
+
+                            rowDataMap.put(cellColName, localDate);
+                            break;
+                        }
+                    }
                 case BOOLEAN:
                     rowDataMap.put(cellColName, cell.getBooleanCellValue());
                     break;
@@ -206,7 +238,6 @@ public class XlsReader extends AbstractSpreadsheetReader {
 
         return rowDataMap;
     }
-
 
 
 

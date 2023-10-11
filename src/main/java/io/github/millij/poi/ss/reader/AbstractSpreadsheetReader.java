@@ -2,14 +2,19 @@ package io.github.millij.poi.ss.reader;
 
 import io.github.millij.poi.SpreadsheetReadException;
 import io.github.millij.poi.ss.handler.RowListener;
+import io.github.millij.poi.ss.model.annotations.SheetColumn;
+import io.github.millij.poi.util.Beans;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -129,6 +134,44 @@ abstract class AbstractSpreadsheetReader implements SpreadsheetReader {
         });
 
         return sheetBeans;
+    }
+    
+    public static String getReturnType(Class<?> beanClz, String header) {
+
+
+        String headerType = null;
+        // Fields
+        Field[] fields = beanClz.getDeclaredFields();
+        for (Field f : fields) {
+            if (!f.isAnnotationPresent(SheetColumn.class)) {
+                continue;
+            }
+            String fieldName = f.getName();
+            SheetColumn ec = f.getDeclaredAnnotation(SheetColumn.class);
+            if (header.equals(fieldName) || header.equals(ec.value())) {
+                headerType = f.getType().getName();
+            }
+            continue;
+        }
+
+        // Methods
+        Method[] methods = beanClz.getDeclaredMethods();
+        for (Method m : methods) {
+            if (!m.isAnnotationPresent(SheetColumn.class)) {
+                continue;
+            }
+            String fieldName = Beans.getFieldName(m);
+            SheetColumn ec = m.getDeclaredAnnotation(SheetColumn.class);
+            if (header.equals(fieldName) || header.equals(ec.value())) {
+                headerType = m.getReturnType().getName();
+            }
+            continue;
+        }
+        if (StringUtils.isBlank(headerType)) {
+            LOGGER.info("Failed to get the return type of the given Header '{}'", header);
+        }
+        return headerType;
+
     }
 
 
