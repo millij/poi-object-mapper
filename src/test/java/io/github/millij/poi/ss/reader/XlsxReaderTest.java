@@ -4,6 +4,7 @@ import io.github.millij.bean.Company;
 import io.github.millij.bean.Employee;
 import io.github.millij.poi.SpreadsheetReadException;
 import io.github.millij.poi.ss.handler.RowListener;
+import io.github.millij.poi.ss.reader.XlsxReader;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -190,11 +191,14 @@ public class XlsxReaderTest {
 
         // Read
         /*
-         * List<Map<String, Object>> employees = ger.readAsMap(new File(_filepath_xlsx_single_sheet), 1);
-         * Assert.assertNotNull(employees); Assert.assertTrue(employees.size() > 0);
-         * 
-         * for (Map<String, Object> emp : employees) { LOGGER.info("test_read_xlsx_single_sheet :: Output - {}", emp); }
-         */
+        List<Map<String, Object>> employees = ger.readAsMap(new File(_filepath_xlsx_single_sheet), 1);
+        Assert.assertNotNull(employees);
+        Assert.assertTrue(employees.size() > 0);
+
+        for (Map<String, Object> emp : employees) {
+            LOGGER.info("test_read_xlsx_single_sheet :: Output - {}", emp);
+        }
+        */
     }
 
 
