@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,26 +59,28 @@ public final class Spreadsheet {
         // Fields
         Field[] fields = beanType.getDeclaredFields();
         for (Field f : fields) {
-            String fieldName = f.getName();
-            mapping.put(fieldName, fieldName);
+            if (!f.isAnnotationPresent(SheetColumn.class)) {
+                continue;
+            }
 
+            final String fieldName = f.getName();
             SheetColumn ec = f.getAnnotation(SheetColumn.class);
-            if (ec != null && StringUtils.isNotEmpty(ec.value())) {
-                mapping.put(fieldName, ec.value());
+            if (ec != null) {
+                mapping.put(fieldName, StringUtils.isBlank(ec.value()) ? fieldName : ec.value());
             }
         }
 
         // Methods
         Method[] methods = beanType.getDeclaredMethods();
         for (Method m : methods) {
-            String fieldName = Beans.getFieldName(m);
-            if (!mapping.containsKey(fieldName)) {
-                mapping.put(fieldName, fieldName);
+            if (!m.isAnnotationPresent(SheetColumn.class)) {
+                continue;
             }
 
+            final String fieldName = Beans.getFieldName(m);
             SheetColumn ec = m.getAnnotation(SheetColumn.class);
-            if (ec != null && StringUtils.isNotEmpty(ec.value())) {
-                mapping.put(fieldName, ec.value());
+            if (ec != null) {
+                mapping.put(fieldName, StringUtils.isBlank(ec.value()) ? fieldName : ec.value());
             }
         }
 
@@ -103,12 +106,60 @@ public final class Spreadsheet {
         // Bean Property to Column Mapping
         final Map<String, String> propToColumnMap = getPropertyToColumnNameMap(beanType);
 
+        final Map<Integer, String> indexToPropMap = getIndexToPropertyMap(beanType);
+
+        if (propToColumnMap.size() == indexToPropMap.size()) {
+
+            final Set<Integer> indexSet = indexToPropMap.keySet();
+            List<Integer> indexList = new ArrayList<Integer>(indexSet);
+            Collections.sort(indexList);
+
+            List<String> indexedColumns = new ArrayList<String>();
+            for (Integer index : indexList) {
+                indexedColumns.add(propToColumnMap.get(indexToPropMap.get(index)));
+                if (index == -1) {
+                    LOGGER.info("Writing One field : '{}' at first column as no index specified",
+                            propToColumnMap.get(indexToPropMap.get(index)));
+                }
+            }
+            return indexedColumns;
+        }
+
+
+        LOGGER.info("Failed to write headers in partially indexed order. Proceeded to write in random order");
         final ArrayList<String> columnNames = new ArrayList<>(propToColumnMap.values());
         return columnNames;
     }
 
 
-    
+    public static Map<Integer, String> getIndexToPropertyMap(Class<?> beanClz) {
+
+        Map<Integer, String> indexToPropMap = new HashMap<Integer, String>();
+
+        Field[] fields = beanClz.getDeclaredFields();
+        for (Field f : fields) {
+            if (!f.isAnnotationPresent(SheetColumn.class)) {
+                continue;
+            }
+            final String fieldName = f.getName();
+            SheetColumn ec = f.getDeclaredAnnotation(SheetColumn.class);
+            indexToPropMap.put(ec.index(), fieldName);
+        }
+
+        Method[] methods = beanClz.getDeclaredMethods();
+        for (Method m : methods) {
+            if (!m.isAnnotationPresent(SheetColumn.class)) {
+                continue;
+            }
+            final String fieldName = Beans.getFieldName(m);
+            SheetColumn ec = m.getDeclaredAnnotation(SheetColumn.class);
+            indexToPropMap.put(ec.index(), fieldName);
+        }
+
+        return indexToPropMap;
+    }
+
+
 
     // Read from Bean : as Row Data
     // ------------------------------------------------------------------------
