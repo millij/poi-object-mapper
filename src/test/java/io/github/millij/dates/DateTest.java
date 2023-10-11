@@ -1,5 +1,6 @@
 package io.github.millij.dates;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -9,9 +10,17 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import io.github.millij.bean.Employee;
 import io.github.millij.bean.Schedule;
+import io.github.millij.poi.SpreadsheetReadException;
+import io.github.millij.poi.ss.reader.XlsReader;
+import io.github.millij.poi.ss.reader.XlsReaderTest;
+import io.github.millij.poi.ss.reader.XlsxReader;
 // import io.github.millij.bean.Schedules;
 import io.github.millij.poi.ss.writer.SpreadsheetWriter;
 
@@ -19,6 +28,8 @@ import io.github.millij.poi.ss.writer.SpreadsheetWriter;
 
 
 public class DateTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DateTest.class);
 
     @Test
     public void writeDatesTest() throws IOException, ParseException {
@@ -41,6 +52,44 @@ public class DateTest {
 
         gew.addSheet(Schedule.class, schedules);
         gew.write();
+    }
+
+    @Test
+    public void xlsx_read_dates_test() throws SpreadsheetReadException {
+        // Excel Reader
+        LOGGER.info("xlsx_read_dates_test :: Reading file - {}",
+                "src/test/resources/sample-files/write_formatted_date_sample.xlsx");
+        XlsxReader reader = new XlsxReader();
+
+        // Read
+        List<Schedule> schedules = reader.read(Schedule.class,
+                new File("src/test/resources/sample-files/write_formatted_date_sample.xlsx"));
+        Assert.assertNotNull(schedules);
+        Assert.assertTrue(schedules.size() > 0);
+
+        for (Schedule emp : schedules) {
+            LOGGER.info("xlsx_read_dates_test :: Output - {}", emp);
+        }
+
+    }
+
+    @Test
+    public void xls_read_dates_test() throws SpreadsheetReadException {
+        // Excel Reader
+        LOGGER.info("xlsx_read_dates_test :: Reading file - {}",
+                "src/test/resources/sample-files/xls_sample_read_dates.xls");
+        XlsReader reader = new XlsReader();
+
+        // Read
+        List<Schedule> schedules =
+                reader.read(Schedule.class, new File("src/test/resources/sample-files/xls_sample_read_dates.xls"));
+        Assert.assertNotNull(schedules);
+        Assert.assertTrue(schedules.size() > 0);
+
+        for (Schedule emp : schedules) {
+            LOGGER.info("xlsx_read_dates_test :: Output - {}", emp);
+        }
+
     }
 
 }

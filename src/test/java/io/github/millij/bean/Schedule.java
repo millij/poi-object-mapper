@@ -18,12 +18,16 @@ public class Schedule {
     @SheetColumn(value = "Date", format = "dd/MM/yyyy")
     private Date date;
 
-    @SheetColumn(value = "localDate", format = "dd/MM/yyyy")
+    @SheetColumn(value = "LocalDate", format = "dd/MM/yyyy")
     private LocalDate localDate;
 
     // Constructor
     // -------------------------------------------------------------------------
 
+    public Schedule() {
+        super();
+    }
+    
     public Schedule(String day, Date date, LocalDate localDate) {
         super();
         this.day = day;
@@ -33,6 +37,7 @@ public class Schedule {
 
     // Getters and Setters
     // -------------------------------------------------------------------------
+
 
     public String getDay() {
         return day;
@@ -62,7 +67,7 @@ public class Schedule {
     // ------------------------------------------------------------------------
     @Override
     public String toString() {
-        return "Schedule [day=" + day + ", date=" + date + ", localDate=" + localDate + "]";
+        return "Schedule [day=" + day + ", date=" + date + ", LocalDate=" + localDate + "]";
     }
 
 }
