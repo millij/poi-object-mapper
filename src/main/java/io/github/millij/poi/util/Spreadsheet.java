@@ -110,6 +110,57 @@ public final class Spreadsheet {
         final ArrayList<String> columnNames = new ArrayList<>(propToColumnMap.values());
         return columnNames;
     }
+    
+    public static Map<Integer, String> getIndexToPropertyMap(Class<?> beanType) {
+        // Sanity checks
+        if (Objects.isNull(beanType)) {
+            throw new IllegalArgumentException("getColumnIndexToPropertyMap :: Invalid ExcelBean type - " + beanType);
+        }
+
+        // Column Index to Property Mapping
+        final Map<Integer, String> mapping = new HashMap<Integer, String>();
+
+        // Fields
+        Field[] fields = beanType.getDeclaredFields();
+        for (Field f : fields) {
+            String fieldName = f.getName();
+
+            SheetColumn ec = f.getAnnotation(SheetColumn.class);
+            try {
+                if (!Objects.isNull(ec) && ec.index() == -1) {
+                    throw new Exception("Index must be intialized at annotation level for field " + fieldName);
+                }
+                mapping.put(ec.index(), fieldName);
+            } catch (Exception ex) {
+                if (!Objects.isNull(ex.getMessage())) {
+                    LOGGER.error(ex.getMessage());
+                }
+            }
+        }
+
+        // Methods
+        Method[] methods = beanType.getDeclaredMethods();
+        for (Method m : methods) {
+            String fieldName = Beans.getFieldName(m);
+
+            SheetColumn ec = m.getAnnotation(SheetColumn.class);
+
+            try {
+                if (!Objects.isNull(ec) && ec.index() == -1) {
+                    throw new Exception("Index must be intialized at annotation level for field " + fieldName);
+                }
+                mapping.put(ec.index(), fieldName);
+            } catch (Exception ex) {
+                if (!Objects.isNull(ex.getMessage())) {
+                    LOGGER.error(ex.getMessage());
+                }
+            }
+        }
+
+        LOGGER.info("Java Bean Index to Bean Property - {} : {}", beanType, mapping);
+        return mapping;
+
+    }
 
 
 
@@ -196,6 +247,38 @@ public final class Spreadsheet {
             return rowBean;
         } catch (Exception ex) {
             String errMsg = String.format("Error while creating bean - %s, from - %s", beanClz, cellValues);
+            LOGGER.error(errMsg, ex);
+        }
+
+        return null;
+    }
+
+    public static <T> T rowAsBean(Class<T> beanClz, Map<String, Object> fieldRowValues) {
+        // Sanity checks
+        if (fieldRowValues == null || beanClz == null) {
+            return null;
+        }
+
+        try {
+            // Create new Instance
+            T rowBean = beanClz.newInstance();
+
+            // Fill in the data
+            for (String fieldName : fieldRowValues.keySet()) {
+                Object propValue = fieldRowValues.get(fieldName);
+
+                try {
+                    // Set the property value in the current row object bean
+                    BeanUtils.setProperty(rowBean, fieldName, propValue);
+                } catch (IllegalAccessException | InvocationTargetException ex) {
+                    String errMsg = String.format("Failed to set bean property - %s, value - %s", fieldName, propValue);
+                    LOGGER.error(errMsg, ex);
+                }
+            }
+
+            return rowBean;
+        } catch (Exception ex) {
+            String errMsg = String.format("Error while creating bean - %s, from - %s", beanClz, fieldRowValues);
             LOGGER.error(errMsg, ex);
         }
 

@@ -1,7 +1,6 @@
 package io.github.millij.poi.ss.reader;
 
 import static io.github.millij.poi.util.Beans.isInstantiableType;
-
 import io.github.millij.poi.SpreadsheetReadException;
 import io.github.millij.poi.ss.handler.RowListener;
 import io.github.millij.poi.ss.writer.SpreadsheetWriter;
@@ -79,7 +78,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
             LOGGER.error(errMsg, ex);
             throw new SpreadsheetReadException(errMsg, ex);
         }
-
+        
     }
 
     @Override
@@ -115,6 +114,12 @@ public class XlsReader extends AbstractSpreadsheetReader {
         final HSSFRow headerRow = sheet.getRow(headerRowNo);
         final Map<Integer, String> headerMap = this.extractCellHeaderMap(headerRow);
 
+        boolean isIndexed = Spreadsheet.isIndexed(beanClz, headerMap);
+        if (isIndexed) {
+            this.processSheetIndexed(beanClz, sheet, headerRowNo, eventHandler);
+            return;
+        }
+        
         // Bean Properties - column name mapping
         final Map<String, String> cellPropMapping = Spreadsheet.getColumnToPropertyMap(beanClz);
 
@@ -134,6 +139,34 @@ public class XlsReader extends AbstractSpreadsheetReader {
 
             // Row data as Bean
             T rowBean = Spreadsheet.rowAsBean(beanClz, cellPropMapping, rowDataMap);
+            eventHandler.row(rowNum, rowBean);
+        }
+    }
+    
+    // Indexed Sheet Process
+    
+    protected <T> void processSheetIndexed(Class<T> beanClz, HSSFSheet sheet, int headerRowNo,
+            RowListener<T> eventHandler) {
+
+        // Index to fieldName mapping
+        Map<Integer, String> indexFieldMap = Spreadsheet.getIndexToPropertyMap(beanClz);
+
+        Iterator<Row> rows = sheet.rowIterator();
+        while (rows.hasNext()) {
+            // Process Row Data
+            HSSFRow row = (HSSFRow) rows.next();
+            int rowNum = row.getRowNum();
+            if (rowNum == 0) {
+                continue; // Skip Header row
+            }
+
+            Map<String, Object> rowDataMap = this.extractRowDataAsMap(row, indexFieldMap);
+            if (rowDataMap == null || rowDataMap.isEmpty()) {
+                continue;
+            }
+
+            // Row data as Bean
+            T rowBean = Spreadsheet.rowAsBean(beanClz, rowDataMap);
             eventHandler.row(rowNum, rowBean);
         }
     }
@@ -238,7 +271,5 @@ public class XlsReader extends AbstractSpreadsheetReader {
 
         return rowDataMap;
     }
-
-
 
 }

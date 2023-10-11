@@ -28,6 +28,8 @@ public @interface SheetColumn {
 
     String format() default "dd/MM/yyyy";
 
+    int index() default -1;
+
     /**
      * Setting this to <code>false</code> will enable the null check on the Column values, to ensure
      * non-null values for the field.
