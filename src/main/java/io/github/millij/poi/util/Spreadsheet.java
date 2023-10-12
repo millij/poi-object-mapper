@@ -1,20 +1,23 @@
 package io.github.millij.poi.util;
 
-import io.github.millij.poi.ss.model.annotations.SheetColumn;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.github.millij.poi.ss.model.annotations.SheetColumn;
+
 
 /**
  * Spreadsheet related utilites.
@@ -35,6 +38,7 @@ public final class Spreadsheet {
      * Splits the CellReference and returns only the column reference.
      * 
      * @param cellRef the cell reference value (ex. D3)
+     * 
      * @return returns the column index "D" from the cell reference "D3"
      */
     public static String getCellColumnReference(String cellRef) {
@@ -56,28 +60,28 @@ public final class Spreadsheet {
         final Map<String, String> mapping = new HashMap<String, String>();
 
         // Fields
-        Field[] fields = beanType.getDeclaredFields();
+        final Field[] fields = beanType.getDeclaredFields();
         for (Field f : fields) {
-            String fieldName = f.getName();
-            mapping.put(fieldName, fieldName);
+            final String fieldName = f.getName();
 
             SheetColumn ec = f.getAnnotation(SheetColumn.class);
-            if (ec != null && StringUtils.isNotEmpty(ec.value())) {
-                mapping.put(fieldName, ec.value());
+
+            if (ec != null) {
+                final String value = StringUtils.isNotEmpty(ec.value()) ? ec.value() : fieldName;
+                mapping.put(fieldName, value);
             }
         }
 
         // Methods
-        Method[] methods = beanType.getDeclaredMethods();
+        final Method[] methods = beanType.getDeclaredMethods();
         for (Method m : methods) {
             String fieldName = Beans.getFieldName(m);
-            if (!mapping.containsKey(fieldName)) {
-                mapping.put(fieldName, fieldName);
-            }
 
             SheetColumn ec = m.getAnnotation(SheetColumn.class);
-            if (ec != null && StringUtils.isNotEmpty(ec.value())) {
-                mapping.put(fieldName, ec.value());
+
+            if (ec != null && !mapping.containsKey(fieldName)) {
+                String value = StringUtils.isNotEmpty(ec.value()) ? ec.value() : fieldName;
+                mapping.put(fieldName, value);
             }
         }
 
@@ -106,9 +110,43 @@ public final class Spreadsheet {
         final ArrayList<String> columnNames = new ArrayList<>(propToColumnMap.values());
         return columnNames;
     }
-
-
     
+    public static Map<Integer, String> getIndexToPropertyMap(Class<?> beanClz) {
+        // Sanity checks
+        if (Objects.isNull(beanClz)) {
+            throw new IllegalArgumentException("getColumnIndexToPropertyMap :: Invalid ExcelBean type - " + beanClz);
+        }
+
+        // Column Index to Property Mapping
+        final Map<Integer, String> indexFieldMap = new HashMap<Integer, String>();
+
+        // Fields
+        Field[] fields = beanClz.getDeclaredFields();
+        for (Field f : fields) {
+            String fieldName = f.getName();
+            SheetColumn ec = f.getAnnotation(SheetColumn.class);
+            if (!Objects.isNull(ec)) {
+                indexFieldMap.put(ec.index(), fieldName);
+            }
+        }
+
+        // Methods
+        Method[] methods = beanClz.getDeclaredMethods();
+        for (Method m : methods) {
+            String fieldName = Beans.getFieldName(m);
+            SheetColumn ec = m.getAnnotation(SheetColumn.class);
+            if (!Objects.isNull(ec)) {
+                indexFieldMap.put(ec.index(), fieldName);
+            }
+        }
+
+        LOGGER.info("Java Bean Index to Bean Property - {} : {}", beanClz, indexFieldMap);
+        indexFieldMap.remove(-1);
+        return indexFieldMap;
+
+    }
+
+
 
     // Read from Bean : as Row Data
     // ------------------------------------------------------------------------
@@ -180,7 +218,7 @@ public final class Spreadsheet {
                     continue;
                 }
 
-                Object propValue = cellValues.get(cellName);
+                Object propValue = Objects.isNull(cellValues.get(cellName)) ? cellValues.get(propName) : cellValues.get(cellName);
                 try {
                     // Set the property value in the current row object bean
                     BeanUtils.setProperty(rowBean, propName, propValue);
@@ -199,6 +237,36 @@ public final class Spreadsheet {
         return null;
     }
 
+    public static <T> T rowAsBean(Class<T> beanClz, Map<String, Object> fieldRowValues) {
+        // Sanity checks
+        if (fieldRowValues == null || beanClz == null) {
+            return null;
+        }
 
+        try {
+            // Create new Instance
+            T rowBean = beanClz.newInstance();
+
+            // Fill in the data
+            for (String fieldName : fieldRowValues.keySet()) {
+                Object propValue = fieldRowValues.get(fieldName);
+
+                try {
+                    // Set the property value in the current row object bean
+                    BeanUtils.setProperty(rowBean, fieldName, propValue);
+                } catch (IllegalAccessException | InvocationTargetException ex) {
+                    String errMsg = String.format("Failed to set bean property - %s, value - %s", fieldName, propValue);
+                    LOGGER.error(errMsg, ex);
+                }
+            }
+
+            return rowBean;
+        } catch (Exception ex) {
+            String errMsg = String.format("Error while creating bean - %s, from - %s", beanClz, fieldRowValues);
+            LOGGER.error(errMsg, ex);
+        }
+
+        return null;
+    }
 
 }
