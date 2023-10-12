@@ -13,6 +13,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -99,6 +100,17 @@ abstract class AbstractSpreadsheetReader implements SpreadsheetReader {
         });
 
         return sheetBeans;
+    }
+
+    @Override
+    public <T> List<T> read(Class<T> beanClz, File file, String sheetName) throws SpreadsheetReadException {
+        // Sanity Checks
+        if (Objects.isNull(sheetName)) {
+            String errMsg = "Failed to read the file with SheetName : NULL";
+            throw new SpreadsheetReadException(errMsg);
+        }
+        final int sheetNo = this.getSheetNo(beanClz, file, sheetName);
+        return this.read(beanClz, file, sheetNo);
     }
 
 

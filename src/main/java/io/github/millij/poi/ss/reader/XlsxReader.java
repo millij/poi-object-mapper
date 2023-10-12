@@ -6,6 +6,8 @@ import io.github.millij.poi.SpreadsheetReadException;
 import io.github.millij.poi.ss.handler.RowListener;
 import io.github.millij.poi.util.Spreadsheet;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -43,6 +45,27 @@ public class XlsxReader extends AbstractSpreadsheetReader {
 
     public XlsxReader() {
         super();
+    }
+
+    public <T> Integer getSheetNo(Class<T> beanClz, File file, String sheetName) throws SpreadsheetReadException {
+        // Sanity Checks
+        if (!isInstantiableType(beanClz)) {
+            throw new IllegalArgumentException("XlsReader :: Invalid bean type passed !");
+        }
+
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            final XSSFWorkbook wb = new XSSFWorkbook(fis);
+            final int sheetNo = wb.getSheetIndex(sheetName);
+            if (sheetNo == -1) {
+                LOGGER.error("No sheet is available with name :" + sheetName);
+            }
+            return sheetNo;
+        } catch (Exception ex) {
+            String errMsg = String.format("Error getting XSSFSheet number, to %s : %s", beanClz, ex.getMessage());
+            LOGGER.error(errMsg, ex);
+            throw new SpreadsheetReadException(errMsg, ex);
+        }
     }
 
 
@@ -225,6 +248,8 @@ public class XlsxReader extends AbstractSpreadsheetReader {
                             break;
                         }
                     }
+                    rowDataMap.put(cellColName, cell.getNumericCellValue());
+                    break;
                 case BOOLEAN:
                     rowDataMap.put(cellColName, cell.getBooleanCellValue());
                     break;
