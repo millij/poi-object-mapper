@@ -59,12 +59,12 @@ public class XlsxReader extends AbstractSpreadsheetReader {
         try {
             final XSSFWorkbook wb = new XSSFWorkbook(is);
             final int sheetCount = wb.getNumberOfSheets();
-            LOGGER.debug("Total no. of sheets found in HSSFWorkbook : #{}", sheetCount);
+            LOGGER.debug("Total no. of sheets found in XSSFWorkbook : #{}", sheetCount);
 
             // Iterate over sheets
             for (int i = 0; i < sheetCount; i++) {
                 final XSSFSheet sheet = wb.getSheetAt(i);
-                LOGGER.debug("Processing HSSFSheet at No. : {}", i);
+                LOGGER.debug("Processing XSSFSheet at No. : {}", i);
 
                 // Process Sheet
                 this.processSheet(beanClz, sheet, 0, listener);
@@ -113,6 +113,14 @@ public class XlsxReader extends AbstractSpreadsheetReader {
         XSSFRow headerRow = sheet.getRow(headerRowNo);
         final Map<Integer, String> headerMap = this.extractCellHeaderMap(headerRow);
 
+        final Map<Integer, String> indexFieldMap = Spreadsheet.getIndexToPropertyMap(beanClz);
+
+        if (indexFieldMap.size() == headerMap.size()) {
+            this.processSheetIndexed(beanClz, sheet, headerRowNo, eventHandler, indexFieldMap);
+            return;
+        }
+
+        LOGGER.info("Not Found proper indexing for all Fields. Proceeding with default Sheet Processing");
         // Bean Properties - column name mapping
         final Map<String, String> cellPropMapping = Spreadsheet.getColumnToPropertyMap(beanClz);
 
@@ -132,6 +140,31 @@ public class XlsxReader extends AbstractSpreadsheetReader {
 
             // Row data as Bean
             T rowBean = Spreadsheet.rowAsBean(beanClz, cellPropMapping, rowDataMap);
+            eventHandler.row(rowNum, rowBean);
+        }
+    }
+
+    // Indexed Sheet Process
+
+    protected <T> void processSheetIndexed(Class<T> beanClz, XSSFSheet sheet, int headerRowNo,
+            RowListener<T> eventHandler, Map<Integer, String> indexFieldMap) {
+
+        Iterator<Row> rows = sheet.rowIterator();
+        while (rows.hasNext()) {
+            // Process Row Data
+            XSSFRow row = (XSSFRow) rows.next();
+            int rowNum = row.getRowNum();
+            if (rowNum == 0) {
+                continue; // Skip Header row
+            }
+
+            Map<String, Object> rowDataMap = this.extractRowDataAsMap(beanClz, row, indexFieldMap);
+            if (rowDataMap == null || rowDataMap.isEmpty()) {
+                continue;
+            }
+
+            // Row data as Bean
+            T rowBean = Spreadsheet.rowAsBean(beanClz, rowDataMap);
             eventHandler.row(rowNum, rowBean);
         }
     }
@@ -225,6 +258,7 @@ public class XlsxReader extends AbstractSpreadsheetReader {
                             break;
                         }
                     }
+                    rowDataMap.put(cellColName, cell.getNumericCellValue());
                 case BOOLEAN:
                     rowDataMap.put(cellColName, cell.getBooleanCellValue());
                     break;

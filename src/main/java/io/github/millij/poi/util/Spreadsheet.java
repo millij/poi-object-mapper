@@ -111,54 +111,38 @@ public final class Spreadsheet {
         return columnNames;
     }
     
-    public static Map<Integer, String> getIndexToPropertyMap(Class<?> beanType) {
+    public static Map<Integer, String> getIndexToPropertyMap(Class<?> beanClz) {
         // Sanity checks
-        if (Objects.isNull(beanType)) {
-            throw new IllegalArgumentException("getColumnIndexToPropertyMap :: Invalid ExcelBean type - " + beanType);
+        if (Objects.isNull(beanClz)) {
+            throw new IllegalArgumentException("getColumnIndexToPropertyMap :: Invalid ExcelBean type - " + beanClz);
         }
 
         // Column Index to Property Mapping
-        final Map<Integer, String> mapping = new HashMap<Integer, String>();
+        final Map<Integer, String> indexFieldMap = new HashMap<Integer, String>();
 
         // Fields
-        Field[] fields = beanType.getDeclaredFields();
+        Field[] fields = beanClz.getDeclaredFields();
         for (Field f : fields) {
             String fieldName = f.getName();
-
             SheetColumn ec = f.getAnnotation(SheetColumn.class);
-            try {
-                if (!Objects.isNull(ec) && ec.index() == -1) {
-                    throw new Exception("Index must be intialized at annotation level for field " + fieldName);
-                }
-                mapping.put(ec.index(), fieldName);
-            } catch (Exception ex) {
-                if (!Objects.isNull(ex.getMessage())) {
-                    LOGGER.error(ex.getMessage());
-                }
+            if (!Objects.isNull(ec)) {
+                indexFieldMap.put(ec.index(), fieldName);
             }
         }
 
         // Methods
-        Method[] methods = beanType.getDeclaredMethods();
+        Method[] methods = beanClz.getDeclaredMethods();
         for (Method m : methods) {
             String fieldName = Beans.getFieldName(m);
-
             SheetColumn ec = m.getAnnotation(SheetColumn.class);
-
-            try {
-                if (!Objects.isNull(ec) && ec.index() == -1) {
-                    throw new Exception("Index must be intialized at annotation level for field " + fieldName);
-                }
-                mapping.put(ec.index(), fieldName);
-            } catch (Exception ex) {
-                if (!Objects.isNull(ex.getMessage())) {
-                    LOGGER.error(ex.getMessage());
-                }
+            if (!Objects.isNull(ec)) {
+                indexFieldMap.put(ec.index(), fieldName);
             }
         }
 
-        LOGGER.info("Java Bean Index to Bean Property - {} : {}", beanType, mapping);
-        return mapping;
+        LOGGER.info("Java Bean Index to Bean Property - {} : {}", beanClz, indexFieldMap);
+        indexFieldMap.remove(-1);
+        return indexFieldMap;
 
     }
 
@@ -284,7 +268,5 @@ public final class Spreadsheet {
 
         return null;
     }
-
-
 
 }

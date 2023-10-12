@@ -113,13 +113,15 @@ public class XlsReader extends AbstractSpreadsheetReader {
         // Header column - name mapping
         final HSSFRow headerRow = sheet.getRow(headerRowNo);
         final Map<Integer, String> headerMap = this.extractCellHeaderMap(headerRow);
+        
+        final Map<Integer,String> indexFieldMap = Spreadsheet.getIndexToPropertyMap(beanClz);
 
-        boolean isIndexed = Spreadsheet.isIndexed(beanClz, headerMap);
-        if (isIndexed) {
-            this.processSheetIndexed(beanClz, sheet, headerRowNo, eventHandler);
+        if (indexFieldMap.size() == headerMap.size()) {
+            this.processSheetIndexed(beanClz, sheet, headerRowNo, eventHandler, indexFieldMap);
             return;
         }
         
+        LOGGER.info("Not Found proper indexing for all Fields. Proceeding with default Sheet Processing");
         // Bean Properties - column name mapping
         final Map<String, String> cellPropMapping = Spreadsheet.getColumnToPropertyMap(beanClz);
 
@@ -127,7 +129,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
         while (rows.hasNext()) {
             // Process Row Data
             HSSFRow row = (HSSFRow) rows.next();
-            int rowNum = row.getRowNum();
+            final int rowNum = row.getRowNum();
             if (rowNum == 0) {
                 continue; // Skip Header row
             }
@@ -146,10 +148,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
     // Indexed Sheet Process
     
     protected <T> void processSheetIndexed(Class<T> beanClz, HSSFSheet sheet, int headerRowNo,
-            RowListener<T> eventHandler) {
-
-        // Index to fieldName mapping
-        Map<Integer, String> indexFieldMap = Spreadsheet.getIndexToPropertyMap(beanClz);
+            RowListener<T> eventHandler,Map<Integer,String> indexFieldMap) {
 
         Iterator<Row> rows = sheet.rowIterator();
         while (rows.hasNext()) {
@@ -160,7 +159,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
                 continue; // Skip Header row
             }
 
-            Map<String, Object> rowDataMap = this.extractRowDataAsMap(row, indexFieldMap);
+            Map<String, Object> rowDataMap = this.extractRowDataAsMap(beanClz, row, indexFieldMap);
             if (rowDataMap == null || rowDataMap.isEmpty()) {
                 continue;
             }
@@ -257,6 +256,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
                             break;
                         }
                     }
+                    rowDataMap.put(cellColName, cell.getNumericCellValue());
                 case BOOLEAN:
                     rowDataMap.put(cellColName, cell.getBooleanCellValue());
                     break;
