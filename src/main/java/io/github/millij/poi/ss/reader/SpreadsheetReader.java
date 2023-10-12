@@ -16,6 +16,7 @@ import java.util.List;
 public interface SpreadsheetReader {
 
 
+    public static final String DEFAULT_DATE_FORMAT = "dd/MM/yyyy";
     // Read with Custom RowListener
 
     /**
@@ -168,6 +169,34 @@ public interface SpreadsheetReader {
      *         where the file data is not readable or row data to bean mapping failed.
      */
     <T> List<T> read(Class<T> beanClz, InputStream is, int sheetNo) throws SpreadsheetReadException;
+
+    /**
+     * 
+     * @param <T> The Parameterized bean Class.
+     * @param beanClz beanClz The Class type to deserialize the rows data
+     * @param file file {@link File} object of the spreadsheet file
+     * @param sheetName name of the Sheet to be read
+     * 
+     * @return a {@link List} of objects of the parameterized type
+     * 
+     * @throws SpreadsheetReadException SpreadsheetReadException an exception is thrown in cases where the file data is
+     *         not readable or row data to bean mapping failed.
+     */
+    <T> List<T> read(Class<T> beanClz, File file, String sheetName) throws SpreadsheetReadException;
+
+    /**
+     * 
+     * @param <T> The Parameterized bean Class.
+     * @param beanClz beanClz The Class type to deserialize the rows data
+     * @param file file {@link File} object of the spreadsheet file
+     * @param sheetName name of the Sheet to be read
+     * 
+     * @return a Integer value stating the Sheet Number
+     * 
+     * @throws SpreadsheetReadException SpreadsheetReadException an exception is thrown in cases where the file data is
+     *         not readable or row data to bean mapping failed.
+     */
+    <T> Integer getSheetNo(Class<T> beanClz, File file, String sheetName) throws SpreadsheetReadException;
 
 
 

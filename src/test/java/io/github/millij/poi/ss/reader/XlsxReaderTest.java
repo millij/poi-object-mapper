@@ -201,5 +201,30 @@ public class XlsxReaderTest {
         */
     }
 
+    @Test
+    public void test_read_xls_multiple_sheets_by_names() throws SpreadsheetReadException {
+        // Excel Reader
+        LOGGER.info("test_read_xlsx_multiple_sheets_by_names :: Reading file - {}", _filepath_xlsx_multiple_sheets);
+        XlsxReader reader = new XlsxReader();
+
+        // Read Sheet 1
+        List<Employee> employees = reader.read(Employee.class, new File(_filepath_xlsx_multiple_sheets), "Employees");
+        Assert.assertNotNull(employees);
+        Assert.assertTrue(employees.size() > 0);
+
+        for (Employee emp : employees) {
+            LOGGER.info("test_read_xlsx_multiple_sheets_by_names :: Output - {}", emp);
+        }
+
+        // Read Sheet 2
+        List<Company> companies = reader.read(Company.class, new File(_filepath_xlsx_multiple_sheets), "Companies");
+        Assert.assertNotNull(companies);
+        Assert.assertTrue(companies.size() > 0);
+
+        for (Company company : companies) {
+            LOGGER.info("test_read_xlsx_multiple_sheets_by_names :: Output - {}", company);
+        }
+    }
+
 
 }

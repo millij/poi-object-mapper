@@ -23,6 +23,11 @@ public class Employee {
     @SheetColumn("Address")
     private String address;
 
+    @SheetColumn(value = "Formula")
+    private String formula;
+
+    @SheetColumn(value = "Date", format = "yyyy/MM/dd")
+    private String date;
 
     // Constructors
     // ------------------------------------------------------------------------
@@ -31,7 +36,8 @@ public class Employee {
         // Default
     }
 
-    public Employee(String id, String name, Integer age, String gender, Double height) {
+    public Employee(String id, String name, Integer age, String gender, Double height, String formula, String date,
+            String address) {
         super();
 
         this.id = id;
@@ -39,8 +45,10 @@ public class Employee {
         this.age = age;
         this.gender = gender;
         this.height = height;
+        this.date = date;
+        this.address = address;
+        this.formula = formula;
     }
-
 
     // Getters and Setters
     // ------------------------------------------------------------------------
@@ -95,6 +103,21 @@ public class Employee {
         this.address = address;
     }
 
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+    public String getFormula() {
+        return formula;
+    }
+
+    public void setFormula(String formula) {
+        this.formula = formula;
+    }
 
     // Object Methods
     // ------------------------------------------------------------------------
@@ -102,8 +125,7 @@ public class Employee {
     @Override
     public String toString() {
         return "Employee [id=" + id + ", name=" + name + ", age=" + age + ", gender=" + gender + ", height=" + height
-                + ", address=" + address + "]";
+                + ", date=" + date + ", Formula=" + formula + "]";
     }
-
 
 }
