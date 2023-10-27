@@ -1,4 +1,6 @@
 language: java
+jdk:
+  - openjdk8
 
 env:
   - CODECOV_TOKEN="6f3f7d4d-3eab-4605-b631-294c4fb7a58f"
@@ -11,6 +13,8 @@ cache:
     - $HOME/.gradle/nodejs/
     - node_modules
 
+
+sudo: required
 
 before_install:
   - chmod +x gradlew
@@ -33,5 +37,5 @@ after_success:
   # - ./gradlew coveralls
 
 after_failure:
-  - ./gradlew clean check --debug
+  - ./gradlew clean -x check --stacktrace --debug
 
