@@ -64,7 +64,7 @@ public class XlsxReaderTest {
         Assert.assertNotNull(employees);
         Assert.assertTrue(employees.size() > 0);
 
-        for (Employee emp : employees) {
+        for (final Employee emp : employees) {
             LOGGER.info("test_read_xlsx_single_sheet :: Output - {}", emp);
         }
     }
@@ -77,7 +77,7 @@ public class XlsxReaderTest {
         XlsxReader ger = new XlsxReader();
 
         // Read Sheet 1
-        List<Employee> employees = ger.read(Employee.class, new File(_filepath_xlsx_multiple_sheets), 0);
+        List<Employee> employees = ger.read(Employee.class, new File(_filepath_xlsx_multiple_sheets), 1);
         Assert.assertNotNull(employees);
         Assert.assertTrue(employees.size() > 0);
 
@@ -86,7 +86,7 @@ public class XlsxReaderTest {
         }
 
         // Read Sheet 2
-        List<Company> companies = ger.read(Company.class, new File(_filepath_xlsx_multiple_sheets), 1);
+        List<Company> companies = ger.read(Company.class, new File(_filepath_xlsx_multiple_sheets), 2);
         Assert.assertNotNull(companies);
         Assert.assertTrue(companies.size() > 0);
 
@@ -128,7 +128,7 @@ public class XlsxReaderTest {
         final InputStream fisSheet1 = new FileInputStream(new File(_filepath_xlsx_multiple_sheets));
 
         // Read Sheet 1
-        List<Employee> employees = reader.read(Employee.class, fisSheet1, 0);
+        List<Employee> employees = reader.read(Employee.class, fisSheet1, 1);
         Assert.assertNotNull(employees);
         Assert.assertTrue(employees.size() > 0);
 
@@ -140,7 +140,7 @@ public class XlsxReaderTest {
         final InputStream fisSheet2 = new FileInputStream(new File(_filepath_xlsx_multiple_sheets));
 
         // Read Sheet 2
-        List<Company> companies = reader.read(Company.class, fisSheet2, 1);
+        List<Company> companies = reader.read(Company.class, fisSheet2, 2);
         Assert.assertNotNull(companies);
         Assert.assertTrue(companies.size() > 0);
 
