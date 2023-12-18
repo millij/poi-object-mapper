@@ -35,23 +35,23 @@ abstract class AbstractSheetContentsHandler implements SheetContentsHandler {
     // ------------------------------------------------------------------------
 
     @Override
-    public void startRow(int rowNum) {
+    public void startRow(final int rowNum) {
         // Callback
         this.beforeRowStart(rowNum);
 
         // Handle row
         this.currentRow = rowNum;
-        this.currentRowObj = new HashMap<String, Object>();
+        this.currentRowObj = new HashMap<>();
     }
 
     @Override
-    public void endRow(int rowNum) {
+    public void endRow(final int rowNum) {
         // Callback
-        this.afterRowEnd(rowNum, new HashMap<String, Object>(currentRowObj));
+        this.afterRowEnd(rowNum, new HashMap<>(currentRowObj));
     }
 
     @Override
-    public void cell(String cellRef, String cellVal, XSSFComment comment) {
+    public void cell(final String cellRef, final String cellVal, final XSSFComment comment) {
         // Sanity Checks
         if (StringUtils.isEmpty(cellRef)) {
             LOGGER.error("Row[#] {} : Cell reference is empty - {}", currentRow, cellRef);
@@ -64,7 +64,7 @@ abstract class AbstractSheetContentsHandler implements SheetContentsHandler {
         }
 
         // CellColRef
-        String cellColRef = Spreadsheet.getCellColumnReference(cellRef);
+        final String cellColRef = Spreadsheet.getCellColumnReference(cellRef);
 
         // Set the CellValue in the Map
         LOGGER.debug("cell - Saving Column value : {} - {}", cellColRef, cellVal);
