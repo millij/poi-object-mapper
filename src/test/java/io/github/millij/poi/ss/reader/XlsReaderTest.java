@@ -73,11 +73,11 @@ public class XlsReaderTest {
     @Test
     public void test_read_xls_multiple_sheets() throws SpreadsheetReadException {
         // Excel Reader
-        LOGGER.info("test_read_xlsx_multiple_sheets :: Reading file - {}", _filepath_xls_multiple_sheets);
+        LOGGER.info("test_read_xls_multiple_sheets :: Reading file - {}", _filepath_xls_multiple_sheets);
         XlsReader reader = new XlsReader();
 
         // Read Sheet 1
-        List<Employee> employees = reader.read(Employee.class, new File(_filepath_xls_multiple_sheets), 0);
+        List<Employee> employees = reader.read(Employee.class, new File(_filepath_xls_multiple_sheets), 1);
         Assert.assertNotNull(employees);
         Assert.assertTrue(employees.size() > 0);
 
@@ -86,7 +86,7 @@ public class XlsReaderTest {
         }
 
         // Read Sheet 2
-        List<Company> companies = reader.read(Company.class, new File(_filepath_xls_multiple_sheets), 1);
+        List<Company> companies = reader.read(Company.class, new File(_filepath_xls_multiple_sheets), 2);
         Assert.assertNotNull(companies);
         Assert.assertTrue(companies.size() > 0);
 
@@ -128,7 +128,7 @@ public class XlsReaderTest {
         final InputStream fisSheet1 = new FileInputStream(new File(_filepath_xls_multiple_sheets));
 
         // Read Sheet 1
-        List<Employee> employees = reader.read(Employee.class, fisSheet1, 0);
+        List<Employee> employees = reader.read(Employee.class, fisSheet1, 1);
         Assert.assertNotNull(employees);
         Assert.assertTrue(employees.size() > 0);
 
@@ -140,7 +140,7 @@ public class XlsReaderTest {
         final InputStream fisSheet2 = new FileInputStream(new File(_filepath_xls_multiple_sheets));
 
         // Read Sheet 2
-        List<Company> companies = reader.read(Company.class, fisSheet2, 1);
+        List<Company> companies = reader.read(Company.class, fisSheet2, 2);
         Assert.assertNotNull(companies);
         Assert.assertTrue(companies.size() > 0);
 
@@ -158,13 +158,13 @@ public class XlsReaderTest {
         LOGGER.info("test_read_xls_single_sheet_with_callback :: Reading file - {}", _filepath_xls_single_sheet);
 
         // file
-        final File xlsxFile = new File(_filepath_xls_single_sheet);
+        final File xlsFile = new File(_filepath_xls_single_sheet);
 
         final List<Employee> employees = new ArrayList<Employee>();
 
         // Read
         XlsReader reader = new XlsReader();
-        reader.read(Employee.class, xlsxFile, new RowListener<Employee>() {
+        reader.read(Employee.class, xlsFile, new RowListener<Employee>() {
 
             @Override
             public void row(int rowNum, Employee employee) {
