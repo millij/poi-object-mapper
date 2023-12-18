@@ -64,7 +64,7 @@ public class XlsxReaderTest {
         Assert.assertNotNull(employees);
         Assert.assertTrue(employees.size() > 0);
 
-        for (Employee emp : employees) {
+        for (final Employee emp : employees) {
             LOGGER.info("test_read_xlsx_single_sheet :: Output - {}", emp);
         }
     }

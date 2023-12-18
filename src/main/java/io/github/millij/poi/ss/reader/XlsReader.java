@@ -93,7 +93,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
         }
 
         try {
-            HSSFWorkbook wb = new HSSFWorkbook(is);
+            final HSSFWorkbook wb = new HSSFWorkbook(is);
             final HSSFSheet sheet = wb.getSheetAt(sheetNo - 1); // subtract 1 as Workbook follows 0-based index
 
             // Process Sheet
@@ -161,25 +161,8 @@ public class XlsReader extends AbstractSpreadsheetReader {
             final int cellColIdx = cell.getColumnIndex();
             final String cellColRef = String.valueOf(cellColIdx);
 
-            // Process cell value
-            final Object header;
-            switch (cell.getCellTypeEnum()) {
-                case STRING:
-                    header = cell.getStringCellValue();
-                    break;
-                case NUMERIC:
-                    header = cell.getNumericCellValue();
-                    break;
-                case BOOLEAN:
-                    header = cell.getBooleanCellValue();
-                    break;
-                case FORMULA:
-                case BLANK:
-                case ERROR:
-                default:
-                    header = null;
-                    break;
-            }
+            // Cell Value
+            final Object header = this.getCellValue(cell);
 
             final String headerName = Objects.isNull(header) ? "" : String.valueOf(header);
             final String normalHeaderName = Spreadsheet.normalize(headerName);
@@ -203,27 +186,42 @@ public class XlsReader extends AbstractSpreadsheetReader {
             final int cellColIdx = cell.getColumnIndex();
             final String cellColRef = String.valueOf(cellColIdx);
 
-            // Process cell value
-            switch (cell.getCellTypeEnum()) {
-                case STRING:
-                    rowDataMap.put(cellColRef, cell.getStringCellValue());
-                    break;
-                case NUMERIC:
-                    rowDataMap.put(cellColRef, cell.getNumericCellValue());
-                    break;
-                case BOOLEAN:
-                    rowDataMap.put(cellColRef, cell.getBooleanCellValue());
-                    break;
-                case FORMULA:
-                case BLANK:
-                case ERROR:
-                    break;
-                default:
-                    break;
-            }
+            // Cell Value
+            final Object cellVal = this.getCellValue(cell);
+
+            rowDataMap.put(cellColRef, cellVal);
         }
 
         return rowDataMap;
+    }
+
+    private Object getCellValue(final HSSFCell cell) {
+        // Sanity checks
+        if (Objects.isNull(cell)) {
+            return null;
+        }
+
+        // Fetch value by CellType
+        final Object cellVal;
+        switch (cell.getCellTypeEnum()) {
+            case STRING:
+                cellVal = cell.getStringCellValue();
+                break;
+            case NUMERIC:
+                cellVal = cell.getNumericCellValue();
+                break;
+            case BOOLEAN:
+                cellVal = cell.getBooleanCellValue();
+                break;
+            case FORMULA:
+            case BLANK:
+            case ERROR:
+            default:
+                cellVal = null;
+                break;
+        }
+
+        return cellVal;
     }
 
 

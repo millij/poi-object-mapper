@@ -1,7 +1,11 @@
 package io.github.millij.poi.ss.reader;
 
+import java.io.IOException;
 import java.io.InputStream;
 
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.util.XMLHelper;
@@ -15,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
 import io.github.millij.poi.SpreadsheetReadException;
@@ -64,17 +69,8 @@ public class XlsxReader extends AbstractSpreadsheetReader {
             // XSSF Reader
             final XSSFReader xssfReader = new XSSFReader(opcPkg);
 
-            // Content Handler
-            final StylesTable styles = xssfReader.getStylesTable();
-            final ReadOnlySharedStringsTable ssTable = new ReadOnlySharedStringsTable(opcPkg);
-            final SheetContentsHandler sheetHandler =
-                    new RowContentsHandler<T>(beanClz, listener, headerRowIdx, lastRowIdx);
-
-            final ContentHandler handler = new XSSFSheetXMLHandler(styles, ssTable, sheetHandler, true);
-
             // XML Reader
-            final XMLReader xmlParser = XMLHelper.newXMLReader();
-            xmlParser.setContentHandler(handler);
+            final XMLReader xmlReader = this.newXMLReaderInstance(beanClz, opcPkg, xssfReader, listener);
 
             // Iterate over sheets
             for (SheetIterator worksheets = (SheetIterator) xssfReader.getSheetsData(); worksheets.hasNext();) {
@@ -83,7 +79,7 @@ public class XlsxReader extends AbstractSpreadsheetReader {
                 LOGGER.debug("Reading XLSX Sheet :: ", sheetName);
 
                 // Parse sheet
-                xmlParser.parse(new InputSource(sheetInpStream));
+                xmlReader.parse(new InputSource(sheetInpStream));
                 sheetInpStream.close();
             }
 
@@ -107,17 +103,8 @@ public class XlsxReader extends AbstractSpreadsheetReader {
             // XSSF Reader
             final XSSFReader xssfReader = new XSSFReader(opcPkg);
 
-            // Content Handler
-            final StylesTable styles = xssfReader.getStylesTable();
-            final ReadOnlySharedStringsTable ssTable = new ReadOnlySharedStringsTable(opcPkg);
-            final SheetContentsHandler sheetHandler =
-                    new RowContentsHandler<T>(beanClz, listener, headerRowIdx, lastRowIdx);
-
-            final ContentHandler handler = new XSSFSheetXMLHandler(styles, ssTable, sheetHandler, true);
-
             // XML Reader
-            final XMLReader xmlParser = XMLHelper.newXMLReader();
-            xmlParser.setContentHandler(handler);
+            final XMLReader xmlReader = this.newXMLReaderInstance(beanClz, opcPkg, xssfReader, listener);
 
             // Iterate over sheets
             final SheetIterator worksheets = (SheetIterator) xssfReader.getSheetsData();
@@ -134,7 +121,7 @@ public class XlsxReader extends AbstractSpreadsheetReader {
                 LOGGER.debug("Reading XLSX Sheet :: #{} - {}", i, sheetName);
 
                 // Parse Sheet
-                xmlParser.parse(new InputSource(sheetInpStream));
+                xmlReader.parse(new InputSource(sheetInpStream));
                 sheetInpStream.close();
             }
 
@@ -145,5 +132,36 @@ public class XlsxReader extends AbstractSpreadsheetReader {
         }
     }
 
+
+    // Private Methods
+    // ------------------------------------------------------------------------
+
+    /**
+     * Create new XMLReader for the passed configuration
+     * 
+     * @param beanClz The Bean Class type of the Data
+     * @param opcPkg
+     * @param xssfReader
+     * @param listener instance of the {@link RowListener}
+     * 
+     * @return
+     */
+    private <T> XMLReader newXMLReaderInstance(final Class<T> beanClz, final OPCPackage opcPkg,
+            final XSSFReader xssfReader, final RowListener<T> listener)
+            throws InvalidFormatException, IOException, SAXException, ParserConfigurationException {
+        // Content Handler
+        final StylesTable styles = xssfReader.getStylesTable();
+        final ReadOnlySharedStringsTable ssTable = new ReadOnlySharedStringsTable(opcPkg);
+        final SheetContentsHandler sheetHandler =
+                new RowContentsHandler<T>(beanClz, listener, headerRowIdx, lastRowIdx);
+
+        final ContentHandler handler = new XSSFSheetXMLHandler(styles, ssTable, sheetHandler, true);
+
+        // XML Reader
+        final XMLReader xmlReader = XMLHelper.newXMLReader();
+        xmlReader.setContentHandler(handler);
+
+        return xmlReader;
+    }
 
 }
