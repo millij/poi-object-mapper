@@ -1,176 +1,85 @@
 package io.github.millij.poi.ss.writer;
 
-import io.github.millij.poi.ss.model.annotations.Sheet;
-import io.github.millij.poi.util.Spreadsheet;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.xssf.usermodel.XSSFCell;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
-@Deprecated
-public class SpreadsheetWriter {
+/**
+ * Representation of a Spreadsheet Writer. To write data to files, create a new Instance of {@link SpreadsheetWriter},
+ * add data to sheets, and finally write the workbook to file.
+ * 
+ * @since 3.0
+ */
+public interface SpreadsheetWriter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SpreadsheetWriter.class);
-
-    private final XSSFWorkbook workbook;
-    private final OutputStream outputStrem;
-
-
-    // Constructors
-    // ------------------------------------------------------------------------
-
-    public SpreadsheetWriter(String filepath) throws FileNotFoundException {
-        this(new File(filepath));
+    /**
+     * This method will attempt to add a new sheet and add the beans a rows of data. To write the data to a file, call
+     * {@link #write(String)} method once the data addition is completed.
+     * 
+     * <br/>
+     * <b>Sheet Name</b> : default sheet name will be used
+     * 
+     * <br/>
+     * <b>Headers</b> : all possible properties as defined by the Type will be used as headers
+     * 
+     * @param beanClz The Class type to serialize the rows data
+     * @param beans List of Data beans of the parameterized type
+     */
+    default <T> void addSheet(Class<T> beanClz, List<T> beans) {
+        this.addSheet(beanClz, beans, null, null);
     }
 
-    public SpreadsheetWriter(File file) throws FileNotFoundException {
-        this(new FileOutputStream(file));
+    /**
+     * This method will attempt to add a new sheet and add the beans a rows of data. To write the data to a file, call
+     * {@link #write(String)} method once the data addition is completed.
+     * 
+     * <br/>
+     * <b>Headers</b> : all possible properties as defined by the Type will be used as headers
+     * 
+     * @param beanClz The Class type to serialize the rows data
+     * @param beans List of Data beans of the parameterized type
+     * @param sheetName Name of the Sheet. (set it to <code>null</code> for default name)
+     */
+    default <T> void addSheet(Class<T> beanClz, List<T> beans, String sheetName) {
+        this.addSheet(beanClz, beans, sheetName, null);
     }
 
-    public SpreadsheetWriter(OutputStream outputStream) {
-        super();
-
-        this.workbook = new XSSFWorkbook();
-        this.outputStrem = outputStream;
+    /**
+     * This method will attempt to add a new sheet and add the beans a rows of data. To write the data to a file, call
+     * {@link #write(String)} method once the data addition is completed.
+     * 
+     * <br/>
+     * <b>Sheet Name</b> : default sheet name will be used
+     * 
+     * @param beanClz The Class type to serialize the rows data
+     * @param beans List of Data beans of the parameterized type
+     * @param headers a {@link List} of Header names to write in the file. <code>null</code> or empty list will default
+     *        to all writable properties.
+     */
+    default <T> void addSheet(Class<T> beanClz, List<T> beans, List<String> headers) {
+        this.addSheet(beanClz, beans, null, headers);
     }
 
-
-    // Methods
-    // ------------------------------------------------------------------------
-
-    
-    // Sheet :: Add
-    
-    public <EB> void addSheet(Class<EB> beanType, List<EB> rowObjects) {
-        // Sheet Headers
-        List<String> headers = Spreadsheet.getColumnNames(beanType);
-
-        this.addSheet(beanType, rowObjects, headers);
-    }
-
-    public <EB> void addSheet(Class<EB> beanType, List<EB> rowObjects, List<String> headers) {
-        // SheetName
-        Sheet sheet = beanType.getAnnotation(Sheet.class);
-        String sheetName = sheet != null ? sheet.value() : null;
-
-        this.addSheet(beanType, rowObjects, headers, sheetName);
-    }
-
-    public <EB> void addSheet(Class<EB> beanType, List<EB> rowObjects, String sheetName) {
-        // Sheet Headers
-        List<String> headers = Spreadsheet.getColumnNames(beanType);
-
-        this.addSheet(beanType, rowObjects, headers, sheetName);
-    }
-
-    public <EB> void addSheet(Class<EB> beanType, List<EB> rowObjects, List<String> headers,
-            String sheetName) {
-        // Sanity checks
-        if (beanType == null) {
-            throw new IllegalArgumentException("GenericExcelWriter :: ExcelBean type should not be null");
-        }
-
-        if (CollectionUtils.isEmpty(rowObjects)) {
-            LOGGER.error("Skipping excel sheet writing as the ExcelBean collection is empty");
-            return;
-        }
-
-        if (CollectionUtils.isEmpty(headers)) {
-            LOGGER.error("Skipping excel sheet writing as the headers collection is empty");
-            return;
-        }
-
-        try {
-            XSSFSheet exSheet = workbook.getSheet(sheetName);
-            if (exSheet != null) {
-                String errMsg = String.format("A Sheet with the passed name already exists : %s", sheetName);
-                throw new IllegalArgumentException(errMsg);
-            }
-
-            XSSFSheet sheet = StringUtils.isEmpty(sheetName) ? workbook.createSheet() : workbook.createSheet(sheetName);
-            LOGGER.debug("Added new Sheet[name] to the workbook : {}", sheet.getSheetName());
-
-            // Header
-            XSSFRow headerRow = sheet.createRow(0);
-            for (int i = 0; i < headers.size(); i++) {
-                XSSFCell cell = headerRow.createCell(i);
-                cell.setCellValue(headers.get(i));
-            }
-
-            // Data Rows
-            Map<String, List<String>> rowsData = this.prepareSheetRowsData(headers, rowObjects);
-            for (int i = 0, rowNum = 1; i < rowObjects.size(); i++, rowNum++) {
-                final XSSFRow row = sheet.createRow(rowNum);
-
-                int cellNo = 0;
-                for (String key : rowsData.keySet()) {
-                    Cell cell = row.createCell(cellNo);
-                    String value = rowsData.get(key).get(i);
-                    cell.setCellValue(value);
-                    cellNo++;
-                }
-            }
-
-        } catch (Exception ex) {
-            String errMsg = String.format("Error while preparing sheet with passed row objects : %s", ex.getMessage());
-            LOGGER.error(errMsg, ex);
-        }
-    }
+    /**
+     * This method will attempt to add a new sheet and add the beans a rows of data. To write the data to a file, call
+     * {@link #write(String)} method once the data addition is completed.
+     * 
+     * @param beanClz The Class type to serialize the rows data
+     * @param beans List of Data beans of the parameterized type
+     * @param sheetName Name of the Sheet. (set it to <code>null</code> for default name)
+     * @param headers a {@link List} of Header names to write in the file. <code>null</code> or empty list will default
+     *        to all writable properties.
+     */
+    <T> void addSheet(Class<T> beanClz, List<T> beans, String sheetName, List<String> headers);
 
 
-    // Sheet :: Append to existing
-
-
-    
-    // Write
-
-    public void write() throws IOException {
-        workbook.write(outputStrem);
-        workbook.close();
-    }
-
-
-    // Private Methods
-    // ------------------------------------------------------------------------
-
-    private <EB> Map<String, List<String>> prepareSheetRowsData(List<String> headers,
-            List<EB> rowObjects) throws Exception {
-
-        final Map<String, List<String>> sheetData = new LinkedHashMap<String, List<String>>();
-
-        // Iterate over Objects
-        for (EB excelBean : rowObjects) {
-            Map<String, String> row = Spreadsheet.asRowDataMap(excelBean, headers);
-
-            for (String header : headers) {
-                List<String> data = sheetData.containsKey(header) ? sheetData.get(header) : new ArrayList<String>();
-                String value = row.get(header) != null ? row.get(header) : "";
-                data.add(value);
-
-                sheetData.put(header, data);
-            }
-        }
-
-        return sheetData;
-    }
-
-
+    /**
+     * Writes the current Spreadsheet workbook to a file in the specified path.
+     * 
+     * @param filepath output filepath (including filename).
+     * 
+     * @throws IOException if the filepath is not writable.
+     */
+    void write(String filepath) throws IOException;
 
 }

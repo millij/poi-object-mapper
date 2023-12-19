@@ -26,7 +26,6 @@ public class Column implements Comparable<Column> {
 
     public Column() {
         super();
-        // init
     }
 
     public Column(String name) {
@@ -43,8 +42,12 @@ public class Column implements Comparable<Column> {
     // Comparable
 
     @Override
-    public int compareTo(Column o) {
-        return Objects.isNull(o) ? 1 : Integer.compare(this.order, o.order);
+    public int compareTo(final Column o) {
+        if (Objects.isNull(o) || Objects.isNull(o.getOrder())) {
+            return 1;
+        }
+
+        return Objects.isNull(this.getOrder()) ? -1 : Integer.compare(this.getOrder(), o.getOrder());
     }
 
 

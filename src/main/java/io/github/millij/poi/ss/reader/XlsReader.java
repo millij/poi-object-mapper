@@ -155,7 +155,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
 
         final Map<String, String> headerCellRefs = new HashMap<>();
 
-        Iterator<Cell> cells = headerRow.cellIterator();
+        final Iterator<Cell> cells = headerRow.cellIterator();
         while (cells.hasNext()) {
             final HSSFCell cell = (HSSFCell) cells.next();
             final int cellColIdx = cell.getColumnIndex();

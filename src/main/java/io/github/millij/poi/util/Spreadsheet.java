@@ -2,13 +2,11 @@ package io.github.millij.poi.util;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -16,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import io.github.millij.poi.ss.model.Column;
 import io.github.millij.poi.ss.model.DateTimeType;
+import io.github.millij.poi.ss.model.annotations.Sheet;
 import io.github.millij.poi.ss.model.annotations.SheetColumn;
 
 
@@ -32,7 +31,8 @@ public final class Spreadsheet {
     }
 
 
-    // Utilities
+    //
+    // Cell
     // ------------------------------------------------------------------------
 
     /**
@@ -42,13 +42,62 @@ public final class Spreadsheet {
      * 
      * @return returns the column index "D" from the cell reference "D3"
      */
-    public static String getCellColumnReference(String cellRef) {
-        String cellColRef = cellRef.split("[0-9]*$")[0];
+    public static String getCellColumnReference(final String cellRef) {
+        final String cellColRef = cellRef.split("[0-9]*$")[0];
         return cellColRef;
     }
 
 
+    //
+    // Sheet & SheetColumn Annotations
+    // ------------------------------------------------------------------------
+
+    /**
+     * Get the name of the sheet as defined in the {@link SheetColumn} annotation.
+     * 
+     * @param beanType The bean Type
+     * 
+     * @return Sheet name as String.
+     */
+    public static String getSheetName(final Class<?> beanType) {
+        final Sheet sheet = beanType.getAnnotation(Sheet.class);
+        String sheetName = sheet != null ? sheet.value() : null;
+        return sheetName;
+    }
+
+    /**
+     * Prepare {@link Column} def from {@link SheetColumn} annotation info.
+     * 
+     * @param sheetCol instance of the {@link SheetColumn} annotation
+     * @param defaultName default name of the Column
+     * 
+     * @return {@link Column} object representation.
+     */
+    public static Column asColumn(final SheetColumn sheetCol, final String defaultName) {
+        // Sanity checks
+        if (Objects.isNull(sheetCol)) {
+            return new Column(defaultName);
+        }
+
+        // Name
+        final String scVal = sheetCol.value();
+        final String colName = Objects.isNull(scVal) || scVal.isBlank() ? defaultName : scVal;
+
+        // Prepare Column
+        final Column column = new Column();
+        column.setName(colName);
+        column.setNullable(sheetCol.nullable());
+        column.setFormat(sheetCol.format());
+        column.setOrder(sheetCol.order());
+        column.setDatetimeType(sheetCol.datetime());
+
+        return column;
+    }
+
+
+    //
     // Bean :: Property Utils
+    // ------------------------------------------------------------------------
 
     public static Map<String, Column> getPropertyToColumnDefMap(final Class<?> beanType) {
         // Sanity checks
@@ -175,7 +224,8 @@ public final class Spreadsheet {
                 final String propColName = propColDef.getName();
 
                 // Get the Header Cell Ref
-                final String propCellRef = headerCellRefsMap.get(propColName);
+                final String normalizedColName = Spreadsheet.normalize(propColName);
+                final String propCellRef = headerCellRefsMap.get(normalizedColName);
                 if (StringUtils.isEmpty(propCellRef)) {
                     LOGGER.debug("{} :: No Cell Ref found [Prop - Col] : [{} - {}]", beanClz, propName, propColName);
                     continue;
@@ -206,7 +256,6 @@ public final class Spreadsheet {
         return null;
     }
 
-
     private static boolean validateRowData(final Map<String, Object> rowDataMap,
             final Map<String, String> headerCellRefsMap, final Map<String, Column> propColumnMap) {
         // Good Values
@@ -217,9 +266,12 @@ public final class Spreadsheet {
             // Prop Column Definition
             final Column propColDef = propColumnMap.get(propName);
             final String propColName = propColDef.getName();
+            final String normalizedColName = Spreadsheet.normalize(propColName);
 
             // Get the Header Cell Ref
-            final String propCellRef = headerCellRefsMap.get(propColName);
+            final String propCellRef = headerCellRefsMap.containsKey(propColName) //
+                    ? headerCellRefsMap.get(propColName) //
+                    : headerCellRefsMap.get(normalizedColName);
             if (StringUtils.isEmpty(propCellRef)) {
                 continue;
             }
@@ -244,35 +296,7 @@ public final class Spreadsheet {
     // ------------------------------------------------------------------------
 
     /**
-     * Prepare {@link Column} def from {@link SheetColumn} annotation info.
-     * 
-     * @param sheetCol
-     * @param defaultName
-     * 
-     * @return
-     */
-    public static Column asColumn(final SheetColumn sheetCol, final String defaultName) {
-        // Sanity checks
-        if (Objects.isNull(sheetCol)) {
-            return new Column(defaultName);
-        }
-
-        // Name
-        final String scVal = sheetCol.value();
-        final String colName = Objects.isNull(scVal) || scVal.isBlank() ? defaultName : scVal;
-        final String normalColName = Spreadsheet.normalize(colName);
-
-        // Prepare Column
-        final Column column = new Column(normalColName);
-        column.setNullable(sheetCol.nullable());
-        column.setFormat(sheetCol.format());
-        column.setOrder(sheetCol.order());
-        column.setDatetimeType(sheetCol.datetime());
-
-        return column;
-    }
-
-    /**
+     * Normalize the string. typically used for case-insensitive comparison.
      */
     public static String normalize(final String inStr) {
         // Sanity checks
@@ -287,18 +311,5 @@ public final class Spreadsheet {
         return normalizedStr;
     }
 
-
-    // Deprecated
-    // ------------------------------------------------------------------------
-
-    @Deprecated
-    public static List<String> getColumnNames(Class<?> beanType) {
-        // Bean Property to Column Mapping
-        final Map<String, Column> propToColumnMap = getPropertyToColumnDefMap(beanType);
-        final Collection<Column> colums = propToColumnMap.values();
-
-        final List<String> columnNames = colums.stream().map(Column::getName).collect(Collectors.toList());
-        return columnNames;
-    }
 
 }
