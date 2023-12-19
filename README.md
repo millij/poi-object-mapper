@@ -22,7 +22,7 @@ This library is available in [Maven Central](https://mvnrepository.com/artifact/
 <dependency>
     <groupId>io.github.millij</groupId>
     <artifactId>poi-object-mapper</artifactId>
-    <version>1.0.0</version>
+    <version>2.1.0</version>
 </dependency>
 ```
 
@@ -30,7 +30,7 @@ To install manually, please check the [releases](https://github.com/millij/poi-o
 
 #### Dependencies
 
-The current implementation uses **POI version 4.0.1**.
+The current implementation uses **POI version 4.1.2**.
 
 
 ## Usage
