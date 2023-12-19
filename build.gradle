@@ -15,7 +15,7 @@ sourceCompatibility = 1.11
 targetCompatibility = 1.11
 
 group = 'io.github.millij'
-version = '3.0.0-SNAPSHOT'
+version = '3.0.0'
 
 
 dependencies {
