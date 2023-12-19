@@ -1,11 +1,5 @@
 package io.github.millij.poi.ss.reader;
 
-import io.github.millij.bean.Company;
-import io.github.millij.bean.Employee;
-import io.github.millij.poi.SpreadsheetReadException;
-import io.github.millij.poi.ss.handler.RowListener;
-import io.github.millij.poi.ss.reader.XlsReader;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -20,6 +14,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.github.millij.bean.Company;
+import io.github.millij.bean.Employee;
+import io.github.millij.poi.SpreadsheetReadException;
+import io.github.millij.poi.ss.handler.RowListener;
 
 
 public class XlsReaderTest {
@@ -96,7 +95,6 @@ public class XlsReaderTest {
     }
 
 
-
     // Read from Stream
 
     @Test
@@ -164,7 +162,7 @@ public class XlsReaderTest {
 
         // Read
         XlsReader reader = new XlsReader();
-        reader.read(Employee.class, xlsFile, new RowListener<Employee>() {
+        reader.read(Employee.class, xlsFile, new RowListener<>() {
 
             @Override
             public void row(int rowNum, Employee employee) {
@@ -172,6 +170,7 @@ public class XlsReaderTest {
                 LOGGER.info("test_read_xls_single_sheet_with_callback :: Output - {}", employee);
 
             }
+
         });
 
         Assert.assertNotNull(employees);
