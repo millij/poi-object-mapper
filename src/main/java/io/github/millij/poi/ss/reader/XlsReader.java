@@ -203,7 +203,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
 
         // Fetch value by CellType
         final Object cellVal;
-        switch (cell.getCellTypeEnum()) {
+        switch (cell.getCellType()) {
             case STRING:
                 cellVal = cell.getStringCellValue();
                 break;

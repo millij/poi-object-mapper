@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,8 +60,16 @@ public final class Spreadsheet {
      */
     public static String getSheetName(final Class<?> beanType) {
         final Sheet sheet = beanType.getAnnotation(Sheet.class);
-        String sheetName = sheet != null ? sheet.value() : null;
+        final String sheetName = Objects.isNull(sheet) ? null : sheet.value();
         return sheetName;
+    }
+
+    public static String getSheetColumnName(final SheetColumn sheetColumn, final String defaultName) {
+        // Name
+        final String scValue = sheetColumn.value();
+        final String colName = Objects.isNull(scValue) || scValue.isBlank() ? defaultName : scValue;
+
+        return colName;
     }
 
     /**
@@ -79,9 +86,8 @@ public final class Spreadsheet {
             return new Column(defaultName);
         }
 
-        // Name
-        final String scVal = sheetCol.value();
-        final String colName = Objects.isNull(scVal) || scVal.isBlank() ? defaultName : scVal;
+        // Column Name
+        final String colName = Spreadsheet.getSheetColumnName(sheetCol, defaultName);
 
         // Prepare Column
         final Column column = new Column();
@@ -166,9 +172,9 @@ public final class Spreadsheet {
             }
 
             final String fieldName = f.getName();
+            final SheetColumn sc = f.getAnnotation(SheetColumn.class);
 
-            final SheetColumn ec = f.getAnnotation(SheetColumn.class);
-            final String header = StringUtils.isEmpty(ec.value()) ? fieldName : ec.value();
+            final String header = Spreadsheet.getSheetColumnName(sc, fieldName);
             if (!colHeaders.contains(header)) {
                 continue;
             }
@@ -183,9 +189,9 @@ public final class Spreadsheet {
             }
 
             final String fieldName = Beans.getFieldName(m);
+            final SheetColumn sc = m.getAnnotation(SheetColumn.class);
 
-            final SheetColumn ec = m.getAnnotation(SheetColumn.class);
-            final String header = StringUtils.isEmpty(ec.value()) ? fieldName : ec.value();
+            final String header = Spreadsheet.getSheetColumnName(sc, fieldName);
             if (!colHeaders.contains(header)) {
                 continue;
             }
@@ -226,7 +232,7 @@ public final class Spreadsheet {
                 // Get the Header Cell Ref
                 final String normalizedColName = Spreadsheet.normalize(propColName);
                 final String propCellRef = headerCellRefsMap.get(normalizedColName);
-                if (StringUtils.isEmpty(propCellRef)) {
+                if (Objects.isNull(propCellRef) || propCellRef.isBlank()) {
                     LOGGER.debug("{} :: No Cell Ref found [Prop - Col] : [{} - {}]", beanClz, propName, propColName);
                     continue;
                 }
@@ -272,7 +278,7 @@ public final class Spreadsheet {
             final String propCellRef = headerCellRefsMap.containsKey(propColName) //
                     ? headerCellRefsMap.get(propColName) //
                     : headerCellRefsMap.get(normalizedColName);
-            if (StringUtils.isEmpty(propCellRef)) {
+            if (Objects.isNull(propCellRef) || propCellRef.isBlank()) {
                 continue;
             }
 
