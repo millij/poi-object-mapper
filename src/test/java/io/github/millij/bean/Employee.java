@@ -1,5 +1,10 @@
 package io.github.millij.bean;
 
+import static io.github.millij.poi.ss.model.DateTimeType.DATE;
+import static io.github.millij.poi.ss.model.DateTimeType.DURATION;
+
+import java.util.Date;
+
 import io.github.millij.poi.ss.model.annotations.Sheet;
 import io.github.millij.poi.ss.model.annotations.SheetColumn;
 
@@ -22,6 +27,18 @@ public class Employee {
 
     @SheetColumn("Address")
     private String address;
+
+
+    // DateTime fields
+
+    @SheetColumn(value = "DOB", datetime = DATE, format = "dd-MM-yyy")
+    private Date dateOfBirth; // Date
+
+    @SheetColumn(value = "Last Login Time", datetime = DATE, format = "dd-MM-yyy HH:mm")
+    private Long lastLoginTime; // Timestamp
+
+    @SheetColumn(value = "Last Session Duration", datetime = DURATION, format = "HH:mm:ss")
+    private Long lastSessionDuration; // Duration
 
 
     // Constructors
@@ -95,6 +112,30 @@ public class Employee {
         this.address = address;
     }
 
+    public Date getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(Date dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public Long getLastLoginTime() {
+        return lastLoginTime;
+    }
+
+    public void setLastLoginTime(Long lastLoginTime) {
+        this.lastLoginTime = lastLoginTime;
+    }
+
+    public Long getLastSessionDuration() {
+        return lastSessionDuration;
+    }
+
+    public void setLastSessionDuration(Long lastSessionDuration) {
+        this.lastSessionDuration = lastSessionDuration;
+    }
+
 
     // Object Methods
     // ------------------------------------------------------------------------
@@ -102,7 +143,8 @@ public class Employee {
     @Override
     public String toString() {
         return "Employee [id=" + id + ", name=" + name + ", age=" + age + ", gender=" + gender + ", height=" + height
-                + ", address=" + address + "]";
+                + ", address=" + address + ", dateOfBirth=" + dateOfBirth + ", lastLoginTime=" + lastLoginTime
+                + ", lastSessionDuration=" + lastSessionDuration + "]";
     }
 
 

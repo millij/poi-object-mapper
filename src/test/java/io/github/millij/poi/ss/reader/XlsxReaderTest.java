@@ -1,11 +1,5 @@
 package io.github.millij.poi.ss.reader;
 
-import io.github.millij.bean.Company;
-import io.github.millij.bean.Employee;
-import io.github.millij.poi.SpreadsheetReadException;
-import io.github.millij.poi.ss.handler.RowListener;
-import io.github.millij.poi.ss.reader.XlsxReader;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -17,9 +11,15 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.github.millij.bean.Company;
+import io.github.millij.bean.Employee;
+import io.github.millij.poi.SpreadsheetReadException;
+import io.github.millij.poi.ss.handler.RowListener;
 
 
 public class XlsxReaderTest {
@@ -64,7 +64,7 @@ public class XlsxReaderTest {
         Assert.assertNotNull(employees);
         Assert.assertTrue(employees.size() > 0);
 
-        for (Employee emp : employees) {
+        for (final Employee emp : employees) {
             LOGGER.info("test_read_xlsx_single_sheet :: Output - {}", emp);
         }
     }
@@ -77,7 +77,7 @@ public class XlsxReaderTest {
         XlsxReader ger = new XlsxReader();
 
         // Read Sheet 1
-        List<Employee> employees = ger.read(Employee.class, new File(_filepath_xlsx_multiple_sheets), 0);
+        List<Employee> employees = ger.read(Employee.class, new File(_filepath_xlsx_multiple_sheets), 1);
         Assert.assertNotNull(employees);
         Assert.assertTrue(employees.size() > 0);
 
@@ -86,7 +86,7 @@ public class XlsxReaderTest {
         }
 
         // Read Sheet 2
-        List<Company> companies = ger.read(Company.class, new File(_filepath_xlsx_multiple_sheets), 1);
+        List<Company> companies = ger.read(Company.class, new File(_filepath_xlsx_multiple_sheets), 2);
         Assert.assertNotNull(companies);
         Assert.assertTrue(companies.size() > 0);
 
@@ -94,7 +94,6 @@ public class XlsxReaderTest {
             LOGGER.info("test_read_xlsx_multiple_sheets :: Output - {}", company);
         }
     }
-
 
 
     // Read from Stream
@@ -128,7 +127,7 @@ public class XlsxReaderTest {
         final InputStream fisSheet1 = new FileInputStream(new File(_filepath_xlsx_multiple_sheets));
 
         // Read Sheet 1
-        List<Employee> employees = reader.read(Employee.class, fisSheet1, 0);
+        List<Employee> employees = reader.read(Employee.class, fisSheet1, 1);
         Assert.assertNotNull(employees);
         Assert.assertTrue(employees.size() > 0);
 
@@ -140,7 +139,7 @@ public class XlsxReaderTest {
         final InputStream fisSheet2 = new FileInputStream(new File(_filepath_xlsx_multiple_sheets));
 
         // Read Sheet 2
-        List<Company> companies = reader.read(Company.class, fisSheet2, 1);
+        List<Company> companies = reader.read(Company.class, fisSheet2, 2);
         Assert.assertNotNull(companies);
         Assert.assertTrue(companies.size() > 0);
 
@@ -163,8 +162,8 @@ public class XlsxReaderTest {
         final List<Employee> employees = new ArrayList<Employee>();
 
         // Read
-        XlsxReader reader = new XlsxReader();
-        reader.read(Employee.class, xlsxFile, new RowListener<Employee>() {
+        final XlsxReader reader = new XlsxReader();
+        reader.read(Employee.class, xlsxFile, new RowListener<>() {
 
             @Override
             public void row(int rowNum, Employee employee) {
@@ -172,6 +171,7 @@ public class XlsxReaderTest {
                 LOGGER.info("test_read_xlsx_single_sheet_with_callback :: Output - {}", employee);
 
             }
+
         });
 
         Assert.assertNotNull(employees);
@@ -179,19 +179,20 @@ public class XlsxReaderTest {
     }
 
 
-
     // Read to Map
 
 
+    @Ignore
     @Test
     public void test_read_xlsx_as_Map() throws FileNotFoundException {
         // Excel Reader
         LOGGER.info("test_read_xlsx_as_Map :: Reading file - {}", _filepath_xlsx_single_sheet);
-        XlsxReader ger = new XlsxReader();
 
-        // Read
         /*
-        List<Map<String, Object>> employees = ger.readAsMap(new File(_filepath_xlsx_single_sheet), 1);
+        // Reader
+        final XlsxReader reader = new XlsxReader();
+
+        List<Map<String, Object>> employees = reader.readAsMap(new File(_filepath_xlsx_single_sheet), 1);
         Assert.assertNotNull(employees);
         Assert.assertTrue(employees.size() > 0);
 

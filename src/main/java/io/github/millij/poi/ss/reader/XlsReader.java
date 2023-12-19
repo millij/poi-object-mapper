@@ -1,14 +1,12 @@
 package io.github.millij.poi.ss.reader;
 
 import static io.github.millij.poi.util.Beans.isInstantiableType;
-import io.github.millij.poi.SpreadsheetReadException;
-import io.github.millij.poi.ss.handler.RowListener;
-import io.github.millij.poi.util.Spreadsheet;
 
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
@@ -20,9 +18,14 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.github.millij.poi.SpreadsheetReadException;
+import io.github.millij.poi.ss.handler.RowListener;
+import io.github.millij.poi.ss.model.Column;
+import io.github.millij.poi.util.Spreadsheet;
+
 
 /**
- * Reader impletementation of {@link Workbook} for an POIFS file (.xls).
+ * Reader implementation of {@link Workbook} for an POIFS file (.xls).
  * 
  * @see XlsxReader
  */
@@ -34,7 +37,15 @@ public class XlsReader extends AbstractSpreadsheetReader {
     // Constructor
 
     public XlsReader() {
-        super();
+        this(0);
+    }
+
+    public XlsReader(final int headerRowIdx) {
+        this(headerRowIdx, Integer.MAX_VALUE);
+    }
+
+    public XlsReader(final int headerRowIdx, final int lastRowIdx) {
+        super(headerRowIdx, lastRowIdx);
     }
 
 
@@ -42,7 +53,8 @@ public class XlsReader extends AbstractSpreadsheetReader {
     // ------------------------------------------------------------------------
 
     @Override
-    public <T> void read(Class<T> beanClz, InputStream is, RowListener<T> listener) throws SpreadsheetReadException {
+    public <T> void read(final Class<T> beanClz, final InputStream is, final RowListener<T> listener)
+            throws SpreadsheetReadException {
         // Sanity checks
         if (!isInstantiableType(beanClz)) {
             throw new IllegalArgumentException("XlsReader :: Invalid bean type passed !");
@@ -59,7 +71,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
                 LOGGER.debug("Processing HSSFSheet at No. : {}", i);
 
                 // Process Sheet
-                this.processSheet(beanClz, sheet, 0, listener);
+                this.processSheet(beanClz, sheet, listener);
             }
 
             // Close workbook
@@ -69,11 +81,11 @@ public class XlsReader extends AbstractSpreadsheetReader {
             LOGGER.error(errMsg, ex);
             throw new SpreadsheetReadException(errMsg, ex);
         }
-        
+
     }
 
     @Override
-    public <T> void read(Class<T> beanClz, InputStream is, int sheetNo, RowListener<T> listener)
+    public <T> void read(final Class<T> beanClz, final InputStream is, final int sheetNo, final RowListener<T> listener)
             throws SpreadsheetReadException {
         // Sanity checks
         if (!isInstantiableType(beanClz)) {
@@ -81,11 +93,11 @@ public class XlsReader extends AbstractSpreadsheetReader {
         }
 
         try {
-            HSSFWorkbook wb = new HSSFWorkbook(is);
-            final HSSFSheet sheet = wb.getSheetAt(sheetNo);
+            final HSSFWorkbook wb = new HSSFWorkbook(is);
+            final HSSFSheet sheet = wb.getSheetAt(sheetNo - 1); // subtract 1 as Workbook follows 0-based index
 
             // Process Sheet
-            this.processSheet(beanClz, sheet, 0, listener);
+            this.processSheet(beanClz, sheet, listener);
 
             // Close workbook
             wb.close();
@@ -97,33 +109,36 @@ public class XlsReader extends AbstractSpreadsheetReader {
     }
 
 
+    //
+    // Protected Methods
+    // ------------------------------------------------------------------------
 
-    // Sheet Process
-    
-    protected <T> void processSheet(Class<T> beanClz, HSSFSheet sheet, int headerRowNo, RowListener<T> eventHandler) {
+    protected <T> void processSheet(final Class<T> beanClz, final HSSFSheet sheet, final RowListener<T> eventHandler) {
         // Header column - name mapping
-        HSSFRow headerRow = sheet.getRow(headerRowNo);
-        Map<Integer, String> headerMap = this.extractCellHeaderMap(headerRow);
-        
-        // Bean Properties - column name mapping
-        Map<String, String> cellPropMapping = Spreadsheet.getColumnToPropertyMap(beanClz);
+        final HSSFRow headerRowObj = sheet.getRow(headerRowIdx);
+        final Map<String, String> headerCellRefsMap = this.asHeaderNameToCellRefMap(headerRowObj);
 
-        Iterator<Row> rows = sheet.rowIterator();
+        // Bean Properties - column name mapping
+        final Map<String, Column> propColumnMap = Spreadsheet.getPropertyToColumnDefMap(beanClz);
+
+        final Iterator<Row> rows = sheet.rowIterator();
         while (rows.hasNext()) {
             // Process Row Data
-            HSSFRow row = (HSSFRow) rows.next();
-            int rowNum = row.getRowNum();
-            if (rowNum == 0) {
-                continue; // Skip Header row
+            final HSSFRow row = (HSSFRow) rows.next();
+            final int rowNum = row.getRowNum();
+
+            // Skip rows before Header ROW and after Last ROW
+            if (rowNum < headerRowIdx || rowNum > lastRowIdx) {
+                continue;
             }
 
-            Map<String, Object> rowDataMap = this.extractRowDataAsMap(row, headerMap);
+            final Map<String, Object> rowDataMap = this.extractRowDataAsMap(row);
             if (rowDataMap == null || rowDataMap.isEmpty()) {
                 continue;
             }
 
             // Row data as Bean
-            T rowBean = Spreadsheet.rowAsBean(beanClz, cellPropMapping, rowDataMap);
+            final T rowBean = Spreadsheet.rowAsBean(beanClz, propColumnMap, headerCellRefsMap, rowDataMap);
             eventHandler.row(rowNum, rowBean);
         }
     }
@@ -132,82 +147,82 @@ public class XlsReader extends AbstractSpreadsheetReader {
     // Private Methods
     // ------------------------------------------------------------------------
 
-    private Map<Integer, String> extractCellHeaderMap(HSSFRow headerRow) {
+    private Map<String, String> asHeaderNameToCellRefMap(final HSSFRow headerRow) {
         // Sanity checks
-        if (headerRow == null) {
-            return new HashMap<Integer, String>();
+        if (Objects.isNull(headerRow)) {
+            return new HashMap<>();
         }
 
-        final Map<Integer, String> cellHeaderMap = new HashMap<Integer, String>();
+        final Map<String, String> headerCellRefs = new HashMap<>();
 
-        Iterator<Cell> cells = headerRow.cellIterator();
+        final Iterator<Cell> cells = headerRow.cellIterator();
         while (cells.hasNext()) {
-            HSSFCell cell = (HSSFCell) cells.next();
+            final HSSFCell cell = (HSSFCell) cells.next();
+            final int cellColIdx = cell.getColumnIndex();
+            final String cellColRef = String.valueOf(cellColIdx);
 
-            int cellCol = cell.getColumnIndex();
+            // Cell Value
+            final Object header = this.getCellValue(cell);
 
-            // Process cell value
-            switch (cell.getCellTypeEnum()) {
-                case STRING:
-                    cellHeaderMap.put(cellCol, cell.getStringCellValue());
-                    break;
-                case NUMERIC:
-                    cellHeaderMap.put(cellCol, String.valueOf(cell.getNumericCellValue()));
-                    break;
-                case BOOLEAN:
-                    cellHeaderMap.put(cellCol, String.valueOf(cell.getBooleanCellValue()));
-                    break;
-                case FORMULA:
-                case BLANK:
-                case ERROR:
-                    break;
-                default:
-                    break;
-            }
+            final String headerName = Objects.isNull(header) ? "" : String.valueOf(header);
+            final String normalHeaderName = Spreadsheet.normalize(headerName);
+            headerCellRefs.put(normalHeaderName, cellColRef);
         }
 
-        return cellHeaderMap;
+        return headerCellRefs;
     }
 
-    private Map<String, Object> extractRowDataAsMap(HSSFRow row, Map<Integer, String> columnHeaderMap) {
+    private Map<String, Object> extractRowDataAsMap(final HSSFRow row) {
         // Sanity checks
         if (row == null) {
-            return new HashMap<String, Object>();
+            return new HashMap<>();
         }
 
-        final Map<String, Object> rowDataMap = new HashMap<String, Object>();
+        final Map<String, Object> rowDataMap = new HashMap<>();
 
-        Iterator<Cell> cells = row.cellIterator();
+        final Iterator<Cell> cells = row.cellIterator();
         while (cells.hasNext()) {
-            HSSFCell cell = (HSSFCell) cells.next();
+            final HSSFCell cell = (HSSFCell) cells.next();
+            final int cellColIdx = cell.getColumnIndex();
+            final String cellColRef = String.valueOf(cellColIdx);
 
-            int cellCol = cell.getColumnIndex();
-            String cellColName = columnHeaderMap.get(cellCol);
+            // Cell Value
+            final Object cellVal = this.getCellValue(cell);
 
-            // Process cell value
-            switch (cell.getCellTypeEnum()) {
-                case STRING:
-                    rowDataMap.put(cellColName, cell.getStringCellValue());
-                    break;
-                case NUMERIC:
-                    rowDataMap.put(cellColName, cell.getNumericCellValue());
-                    break;
-                case BOOLEAN:
-                    rowDataMap.put(cellColName, cell.getBooleanCellValue());
-                    break;
-                case FORMULA:
-                case BLANK:
-                case ERROR:
-                    break;
-                default:
-                    break;
-            }
+            rowDataMap.put(cellColRef, cellVal);
         }
 
         return rowDataMap;
     }
 
+    private Object getCellValue(final HSSFCell cell) {
+        // Sanity checks
+        if (Objects.isNull(cell)) {
+            return null;
+        }
 
+        // Fetch value by CellType
+        final Object cellVal;
+        switch (cell.getCellType()) {
+            case STRING:
+                cellVal = cell.getStringCellValue();
+                break;
+            case NUMERIC:
+                cellVal = cell.getNumericCellValue();
+                break;
+            case BOOLEAN:
+                cellVal = cell.getBooleanCellValue();
+                break;
+            case FORMULA:
+            case BLANK:
+            case ERROR:
+            default:
+                cellVal = null;
+                break;
+        }
+
+        return cellVal;
+    }
 
 
 }

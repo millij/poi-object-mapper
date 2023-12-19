@@ -1,9 +1,5 @@
 package io.github.millij.poi.ss.writer;
 
-import io.github.millij.bean.Company;
-import io.github.millij.bean.Employee;
-import io.github.millij.poi.ss.writer.SpreadsheetWriter;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
@@ -17,10 +13,13 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.github.millij.bean.Company;
+import io.github.millij.bean.Employee;
 
-public class SpreadsheetWriterTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SpreadsheetWriterTest.class);
+public class XlsWriterTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(XlsWriterTest.class);
 
     private final String _path_test_output = "test-cases/output/";
 
@@ -46,34 +45,34 @@ public class SpreadsheetWriterTest {
     // ------------------------------------------------------------------------
 
     @Test
-    public void test_write_xlsx_single_sheet() throws IOException {
-        final String filepath_output_file = _path_test_output.concat("single_sheet.xlsx");
+    public void test_write_xls_single_sheet() throws IOException {
+        final String filepath_output_file = _path_test_output.concat("single_sheet.xls");
 
         // Excel Writer
-        LOGGER.info("test_write_xlsx_single_sheet :: Writing to file - {}", filepath_output_file);
-        SpreadsheetWriter gew = new SpreadsheetWriter(filepath_output_file);
+        LOGGER.info("test_write_xls_single_sheet :: Writing to file - {}", filepath_output_file);
+        SpreadsheetWriter gew = new XlsWriter();
 
         // Employees
-        List<Employee> employees = new ArrayList<Employee>();
+        List<Employee> employees = new ArrayList<>();
         employees.add(new Employee("1", "foo", 12, "MALE", 1.68));
         employees.add(new Employee("2", "bar", null, "MALE", 1.68));
         employees.add(new Employee("3", "foo bar", null, null, null));
 
         // Write
         gew.addSheet(Employee.class, employees);
-        gew.write();
+        gew.write(filepath_output_file);
     }
 
     @Test
-    public void test_write_xlsx_single_sheet_custom_headers() throws IOException {
-        final String filepath_output_file = _path_test_output.concat("single_sheet_custom_headers.xlsx");
+    public void test_write_xls_single_sheet_custom_headers() throws IOException {
+        final String filepath_output_file = _path_test_output.concat("single_sheet_custom_headers.xls");
 
         // Excel Writer
-        LOGGER.info("test_write_xlsx_single_sheet :: Writing to file - {}", filepath_output_file);
-        SpreadsheetWriter gew = new SpreadsheetWriter(filepath_output_file);
+        LOGGER.info("test_write_xls_single_sheet :: Writing to file - {}", filepath_output_file);
+        SpreadsheetWriter gew = new XlsWriter();
 
         // Employees
-        List<Employee> employees = new ArrayList<Employee>();
+        List<Employee> employees = new ArrayList<>();
         employees.add(new Employee("1", "foo", 12, "MALE", 1.68));
         employees.add(new Employee("2", "bar", null, "MALE", 1.68));
         employees.add(new Employee("3", "foo bar", null, null, null));
@@ -84,26 +83,26 @@ public class SpreadsheetWriterTest {
         gew.addSheet(Employee.class, employees, headers);
 
         // Write
-        gew.write();
+        gew.write(filepath_output_file);
     }
 
 
     @Test
-    public void test_write_xlsx_multiple_sheets() throws IOException {
-        final String filepath_output_file = _path_test_output.concat("multiple_sheets.xlsx");
+    public void test_write_xls_multiple_sheets() throws IOException {
+        final String filepath_output_file = _path_test_output.concat("multiple_sheets.xls");
 
         // Excel Writer
-        LOGGER.info("test_write_xlsx_single_sheet :: Writing to file - {}", filepath_output_file);
-        SpreadsheetWriter gew = new SpreadsheetWriter(filepath_output_file);
+        LOGGER.info("test_write_xls_single_sheet :: Writing to file - {}", filepath_output_file);
+        SpreadsheetWriter gew = new XlsWriter();
 
         // Employees
-        List<Employee> employees = new ArrayList<Employee>();
+        List<Employee> employees = new ArrayList<>();
         employees.add(new Employee("1", "foo", 12, "MALE", 1.68));
         employees.add(new Employee("2", "bar", null, "MALE", 1.68));
         employees.add(new Employee("3", "foo bar", null, null, null));
 
         // Campanies
-        List<Company> companies = new ArrayList<Company>();
+        List<Company> companies = new ArrayList<>();
         companies.add(new Company("Google", 12000, "Palo Alto, CA"));
         companies.add(new Company("Facebook", null, "Mountain View, CA"));
         companies.add(new Company("SpaceX", null, null));
@@ -113,7 +112,7 @@ public class SpreadsheetWriterTest {
         gew.addSheet(Company.class, companies);
 
         // Write
-        gew.write();
+        gew.write(filepath_output_file);
     }
 
 }

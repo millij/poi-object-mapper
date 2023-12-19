@@ -1,17 +1,13 @@
 package io.github.millij.poi.ss.reader;
 
-import io.github.millij.poi.SpreadsheetReadException;
-import io.github.millij.poi.ss.handler.RowListener;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.github.millij.poi.SpreadsheetReadException;
+import io.github.millij.poi.ss.handler.RowBeanCollector;
 
 
 /**
@@ -22,113 +18,57 @@ abstract class AbstractSpreadsheetReader implements SpreadsheetReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSpreadsheetReader.class);
 
 
+    protected final int headerRowIdx;
+    protected final int lastRowIdx;
+
+
+    // Constructor
+    // ------------------------------------------------------------------------
+
+    AbstractSpreadsheetReader(final int headerRowIdx, final int lastRowIdx) {
+        super();
+
+        // init
+        this.headerRowIdx = headerRowIdx;
+        this.lastRowIdx = lastRowIdx;
+
+        final String insName = this.getClass().getSimpleName();
+        LOGGER.debug("Successfully instantiated {} : header #{}, lastRow #{}", insName, headerRowIdx, lastRowIdx);
+    }
+
 
     // Abstract Methods
     // ------------------------------------------------------------------------
-
 
 
     // Methods
     // ------------------------------------------------------------------------
 
     @Override
-    public <T> void read(Class<T> beanClz, File file, RowListener<T> callback) throws SpreadsheetReadException {
-        // Closeble
-        try (InputStream fis = new FileInputStream(file)) {
+    public <T> List<T> read(final Class<T> beanClz, final InputStream is) throws SpreadsheetReadException {
+        // Row Collector
+        final RowBeanCollector<T> beanCollector = new RowBeanCollector<>();
 
-            // chain
-            this.read(beanClz, fis, callback);
-        } catch (IOException ex) {
-            String errMsg = String.format("Failed to read file as Stream : %s", ex.getMessage());
-            throw new SpreadsheetReadException(errMsg, ex);
-        }
+        // Read with callback to fill list
+        this.read(beanClz, is, beanCollector);
+
+        // Result
+        final List<T> beans = beanCollector.getBeans();
+        return beans;
     }
 
-
     @Override
-    public <T> void read(Class<T> beanClz, File file, int sheetNo, RowListener<T> callback)
+    public <T> List<T> read(final Class<T> beanClz, final InputStream is, final int sheetNo)
             throws SpreadsheetReadException {
-        // Sanity checks
-        try {
-            InputStream fis = new FileInputStream(file);
-
-            // chain
-            this.read(beanClz, fis, sheetNo, callback);
-        } catch (IOException ex) {
-            String errMsg = String.format("Failed to read file as Stream : %s", ex.getMessage());
-            throw new SpreadsheetReadException(errMsg, ex);
-        }
-    }
-
-
-
-    @Override
-    public <T> List<T> read(Class<T> beanClz, File file) throws SpreadsheetReadException {
-        // Closeble
-        try (InputStream fis = new FileInputStream(file)) {
-            return this.read(beanClz, fis);
-        } catch (IOException ex) {
-            String errMsg = String.format("Failed to read file as Stream : %s", ex.getMessage());
-            throw new SpreadsheetReadException(errMsg, ex);
-        }
-    }
-
-    @Override
-    public <T> List<T> read(Class<T> beanClz, InputStream is) throws SpreadsheetReadException {
-        // Result
-        final List<T> sheetBeans = new ArrayList<T>();
+        // Row Collector
+        final RowBeanCollector<T> beanCollector = new RowBeanCollector<>();
 
         // Read with callback to fill list
-        this.read(beanClz, is, new RowListener<T>() {
+        this.read(beanClz, is, sheetNo, beanCollector);
 
-            @Override
-            public void row(int rowNum, T rowObj) {
-                if (rowObj == null) {
-                    LOGGER.error("Null object returned for row : {}", rowNum);
-                    return;
-                }
-
-                sheetBeans.add(rowObj);
-            }
-
-        });
-
-        return sheetBeans;
-    }
-
-
-    @Override
-    public <T> List<T> read(Class<T> beanClz, File file, int sheetNo) throws SpreadsheetReadException {
-        // Closeble
-        try (InputStream fis = new FileInputStream(file)) {
-            return this.read(beanClz, fis, sheetNo);
-        } catch (IOException ex) {
-            String errMsg = String.format("Failed to read file as Stream : %s", ex.getMessage());
-            throw new SpreadsheetReadException(errMsg, ex);
-        }
-    }
-
-    @Override
-    public <T> List<T> read(Class<T> beanClz, InputStream is, int sheetNo) throws SpreadsheetReadException {
         // Result
-        final List<T> sheetBeans = new ArrayList<T>();
-
-        // Read with callback to fill list
-        this.read(beanClz, is, sheetNo, new RowListener<T>() {
-
-            @Override
-            public void row(int rowNum, T rowObj) {
-                if (rowObj == null) {
-                    LOGGER.error("Null object returned for row : {}", rowNum);
-                    return;
-                }
-
-                sheetBeans.add(rowObj);
-            }
-
-        });
-
-        return sheetBeans;
+        final List<T> beans = beanCollector.getBeans();
+        return beans;
     }
 
 

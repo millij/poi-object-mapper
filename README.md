@@ -22,7 +22,7 @@ This library is available in [Maven Central](https://mvnrepository.com/artifact/
 <dependency>
     <groupId>io.github.millij</groupId>
     <artifactId>poi-object-mapper</artifactId>
-    <version>2.1.0</version>
+    <version>3.0.0</version>
 </dependency>
 ```
 
@@ -30,7 +30,7 @@ To install manually, please check the [releases](https://github.com/millij/poi-o
 
 #### Dependencies
 
-The current implementation uses **POI version 4.1.2**.
+The current implementation uses **POI version 5.2.5**.
 
 
 ## Usage
@@ -48,7 +48,7 @@ Consider the below sample spreadsheet, where data of employees is present.
 
 ##### Mapping Rows to a Java Bean
 
-Create a java bean and map its properties to the columns using the `@SheetColumn` annotation. The `@SheetColumn` annotation can be declared on the `Field`, as well as its `Accessor Methods`. Pick any one of them to configure the mapped `Column` as per convenience.    
+Create a java bean and map its properties to the columns using the `@SheetColumn` annotation. The `@SheetColumn` annotation can be declared on the `Field`, as well as its `Accessor Methods`. Pick any one of them to configure the mapped `Column` as per convenience.
 
 ```java
 @Sheet
@@ -68,7 +68,9 @@ public class Employee {
 
 ##### Reading Rows as Java Objects
 
-Once a mapped Java Bean is ready, use a `Reader` to read the file rows as objects. Use `XlsReader` for `.xls` files and `XlsxReader` for `.xlsx` files.
+Once a mapped Java Bean is ready, use a `Reader` to read the file rows as objects.
+
+Use `XlsReader` for `.xls` files and `XlsxReader` for `.xlsx` files.
 
 Reading spreadsheet rows as objects ..
 
@@ -76,26 +78,28 @@ Reading spreadsheet rows as objects ..
     ...
     final File xlsxFile = new File("<path_to_file>");
     final XlsReader reader = new XlsReader();
-    List<Employee> employees = reader.read(Employee.class, xlsxFile);
+    final List<Employee> employees = reader.read(Employee.class, xlsxFile);
     ...
 ```
 
 ##### Writing a collection of objects to file
 
-*Currently writing to `.xlsx` files only is supported*
+Similar to `Reader`, the mapped Java Beans can be written to files.
+
+Use `XlsWriter` for `.xls` files and `XlsxWriter` for `.xlsx` files.
 
 ```java
     ...
     // Employees
-    List<Employee> employees = new ArrayList<Employee>();
+    final List<Employee> employees = new ArrayList<>();
     employees.add(new Employee("1", "foo", 12, "MALE", 1.68));
     employees.add(new Employee("2", "bar", null, "MALE", 1.68));
     employees.add(new Employee("3", "foo bar", null, null, null));
-    
+
     // Writer
-    SpreadsheetWriter writer = new SpreadsheetWriter("<output_file_path>");
+    final SpreadsheetWriter writer = new XlsxWriter();
     writer.addSheet(Employee.class, employees);
-    writer.write();
+    writer.write("<output_file_path>");
     ...
 ```
 
@@ -107,7 +111,7 @@ Reading spreadsheet rows as objects ..
 
 The known issues are already listed under [Issues Section](https://github.com/millij/poi-object-mapper/issues).
 
-Please add there your bugs findings, feature requests, enhancements etc. 
+Please add there your bugs findings, feature requests, enhancements etc.
 
 
 

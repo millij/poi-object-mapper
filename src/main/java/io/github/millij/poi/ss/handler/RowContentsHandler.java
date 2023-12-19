@@ -1,13 +1,14 @@
 package io.github.millij.poi.ss.handler;
 
-import io.github.millij.poi.util.Spreadsheet;
-
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.github.millij.poi.ss.model.Column;
+import io.github.millij.poi.util.Spreadsheet;
 
 
 public class RowContentsHandler<T> extends AbstractSheetContentsHandler {
@@ -15,29 +16,32 @@ public class RowContentsHandler<T> extends AbstractSheetContentsHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(RowContentsHandler.class);
 
     private final Class<T> beanClz;
+    private final Map<String, Column> beanPropColumnMap;
 
-    private final int headerRow;
-    private final Map<String, String> cellPropertyMap;
+    private final RowListener<T> listener;
 
-    private final RowListener<T> rowListener;
+    private final int headerRowNum;
+    private final Map<String, String> headerCellRefsMap;
+
+    private final int lastRowNum;
 
 
     // Constructors
     // ------------------------------------------------------------------------
 
-    public RowContentsHandler(Class<T> beanClz, RowListener<T> rowListener) {
-        this(beanClz, rowListener, 0);
-    }
-
-    public RowContentsHandler(Class<T> beanClz, RowListener<T> rowListener, int headerRow) {
+    public RowContentsHandler(Class<T> beanClz, RowListener<T> listener, int headerRowNum, int lastRowNum) {
         super();
 
+        // init
         this.beanClz = beanClz;
+        this.beanPropColumnMap = Spreadsheet.getPropertyToColumnDefMap(beanClz);
 
-        this.headerRow = headerRow;
-        this.cellPropertyMap = new HashMap<String, String>();
+        this.listener = listener;
 
-        this.rowListener = rowListener;
+        this.headerRowNum = headerRowNum;
+        this.headerCellRefsMap = new HashMap<>();
+
+        this.lastRowNum = lastRowNum;
     }
 
 
@@ -45,38 +49,51 @@ public class RowContentsHandler<T> extends AbstractSheetContentsHandler {
     // ------------------------------------------------------------------------
 
     @Override
-    void beforeRowStart(int rowNum) {
-        // Row Callback
-        // rowListener.beforeRow(rowNum);
+    void beforeRowStart(final int rowNum) {
+        try {
+            // Row Callback
+            listener.beforeRow(rowNum);
+        } catch (Exception ex) {
+            String errMsg = String.format("Error calling #beforeRow callback  row - %d", rowNum);
+            LOGGER.error(errMsg, ex);
+        }
     }
 
 
     @Override
-    void afterRowEnd(int rowNum, Map<String, Object> rowDataMap) {
+    void afterRowEnd(final int rowNum, final Map<String, Object> rowDataMap) {
         // Sanity Checks
-        if (rowDataMap == null || rowDataMap.isEmpty()) {
+        if (Objects.isNull(rowDataMap) || rowDataMap.isEmpty()) {
+            LOGGER.debug("INVALID Row data Passed - Row #{}", rowNum);
             return;
         }
 
-        // Skip rows before header row
-        if (rowNum < headerRow) {
+        // Skip rows before Header ROW and after Last ROW
+        if (rowNum < headerRowNum || rowNum > lastRowNum) {
             return;
         }
 
-        if (rowNum == headerRow) {
-            final Map<String, String> headerMap = this.prepareHeaderMap(rowNum, rowDataMap);
-            cellPropertyMap.putAll(headerMap);
+        // Process Header ROW
+        if (rowNum == headerRowNum) {
+            final Map<String, String> headerCellRefs = this.asHeaderNameToCellRefMap(rowDataMap);
+            headerCellRefsMap.putAll(headerCellRefs);
             return;
         }
+
+        // Check for Column Definitions before processing NON-Header ROWs
 
         // Row As Bean
-        T rowBean = Spreadsheet.rowAsBean(beanClz, cellPropertyMap, rowDataMap);
+        final T rowBean = Spreadsheet.rowAsBean(beanClz, beanPropColumnMap, headerCellRefsMap, rowDataMap);
+        if (Objects.isNull(rowBean)) {
+            LOGGER.debug("Unable to construct Row data Bean object - Row #{}", rowNum);
+            return;
+        }
 
         // Row Callback
         try {
-            rowListener.row(rowNum, rowBean);
+            listener.row(rowNum, rowBean);
         } catch (Exception ex) {
-            String errMsg = String.format("Error calling listener callback  row - %d, bean - %s", rowNum, rowBean);
+            String errMsg = String.format("Error calling #row callback  row - %d, bean - %s", rowNum, rowBean);
             LOGGER.error(errMsg, ex);
         }
     }
@@ -85,26 +102,24 @@ public class RowContentsHandler<T> extends AbstractSheetContentsHandler {
     // Private Methods
     // ------------------------------------------------------------------------
 
-    private Map<String, String> prepareHeaderMap(int rowNo, Map<String, Object> rowDataMap) {
+    private Map<String, String> asHeaderNameToCellRefMap(final Map<String, Object> headerRowData) {
         // Sanity checks
-        if (rowDataMap == null || rowDataMap.isEmpty()) {
-            String errMsg = String.format("Invalid Header data found - Row #%d", rowNo);
-            throw new RuntimeException(errMsg);
+        if (Objects.isNull(headerRowData) || headerRowData.isEmpty()) {
+            return new HashMap<>();
         }
 
-        final Map<String, String> colToBeanPropMap = Spreadsheet.getColumnToPropertyMap(beanClz);
+        // Get Bean Column definitions
+        final Map<String, String> headerCellRefs = new HashMap<String, String>();
+        for (final String colRef : headerRowData.keySet()) {
+            final Object header = headerRowData.get(colRef);
 
-        final Map<String, String> headerMap = new HashMap<String, String>();
-        for (String collRef : rowDataMap.keySet()) {
-            String colName = String.valueOf(rowDataMap.get(collRef));
-            String propName = colToBeanPropMap.get(colName);
-            if (StringUtils.isNotEmpty(propName)) {
-                headerMap.put(collRef, String.valueOf(propName));
-            }
+            final String headerName = Objects.isNull(header) ? "" : String.valueOf(header);
+            final String normalHeaderName = Spreadsheet.normalize(headerName);
+            headerCellRefs.put(normalHeaderName, colRef);
         }
 
-        LOGGER.debug("Header DataMap prepared : {}", headerMap);
-        return headerMap;
+        LOGGER.debug("Header Name to Cell Refs : {}", headerCellRefs);
+        return headerCellRefs;
     }
 
 
