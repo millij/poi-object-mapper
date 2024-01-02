@@ -141,7 +141,7 @@ public final class Spreadsheet {
 
             // Annotation
             final SheetColumn sc = m.getAnnotation(SheetColumn.class);
-            if (Objects.isNull(sc) && m.getName().startsWith("set")) {
+            if (Objects.isNull(sc) || m.getName().startsWith("set")) {
                 continue; // Skip setter
             }
 
