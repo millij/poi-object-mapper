@@ -68,7 +68,7 @@ public final class Beans {
      */
     public static String getFieldValueAsString(final Object beanObj, final String fieldName) throws Exception {
         // Property Descriptor
-        final PropertyDescriptor pd = new PropertyDescriptor(fieldName, beanObj.getClass());
+        final PropertyDescriptor pd = PROP_UTILS_BEAN.getPropertyDescriptor(beanObj, fieldName);
         final Method getterMtd = pd.getReadMethod();
 
         final Object value = getterMtd.invoke(beanObj);
