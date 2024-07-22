@@ -27,7 +27,7 @@ import io.github.millij.poi.ss.model.DateTimeType;
  */
 public final class Beans {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Spreadsheet.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Beans.class);
 
     private Beans() {
         super();
@@ -110,9 +110,14 @@ public final class Beans {
 
     public static void setProperty(final Object target, final String propName, final Object propValue,
             final String format, final DateTimeType dateTimeType) throws Exception {
+        // Sanity checks
+        if (Objects.isNull(propValue)) {
+            return; // Skip Setter if property value is NULL
+        }
+
         // Calculate the property type
         final PropertyDescriptor descriptor = PROP_UTILS_BEAN.getPropertyDescriptor(target, propName);
-        if (descriptor == null || descriptor.getWriteMethod() == null) {
+        if (Objects.isNull(descriptor) || Objects.isNull(descriptor.getWriteMethod())) {
             return; // Skip this property setter
         }
 
@@ -120,7 +125,7 @@ public final class Beans {
         final Class<?> type = descriptor.getPropertyType();
 
         // Check PropValue (expected non-null and string)
-        if (Objects.isNull(propValue) || !(propValue instanceof String)) {
+        if (!(propValue instanceof String)) {
             setProperty(target, propName, type, propValue);
             return;
         }
