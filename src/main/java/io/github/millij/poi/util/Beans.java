@@ -109,9 +109,52 @@ public final class Beans {
     }
 
 
-    // Set Property
+    // Bean Property :: Get
     // ------------------------------------------------------------------------
 
+    public static Object getProperty(final Object bean, final String propName) throws Exception {
+        final Object value = PROP_UTILS_BEAN.getSimpleProperty(bean, propName);
+        return value;
+    }
+
+
+    // Bean Property :: Set
+    // ------------------------------------------------------------------------
+
+    /**
+     */
+    public static void setProperty(final Object target, final String propName, final Class<?> propType,
+            final Object propValue) throws Exception {
+        // Sanity checks
+        if (Objects.isNull(propValue)) {
+            return; // Skip Setter if property value is NULL
+        }
+
+        try {
+            // Convert the specified value to the required type
+            final Object newValue;
+            if (propValue instanceof String) {
+                newValue = CONVERT_UTILS_BEAN.convert((String) propValue, propType);
+            } else {
+                final Converter converter = CONVERT_UTILS_BEAN.lookup(propType);
+                if (converter != null) {
+                    newValue = converter.convert(propType, propValue);
+                } else {
+                    newValue = propValue;
+                }
+            }
+
+            // Invoke the setter method
+            PROP_UTILS_BEAN.setProperty(target, propName, newValue);
+
+        } catch (Exception ex) {
+            //
+        }
+    }
+
+
+    /**
+     */
     public static void setProperty(final Object target, final String propName, final Object propValue,
             final String format, final DateTimeType dateTimeType) throws Exception {
         // Sanity checks
@@ -126,23 +169,36 @@ public final class Beans {
         }
 
         // Property Type
-        final Class<?> type = descriptor.getPropertyType();
+        final Class<?> propType = descriptor.getPropertyType();
 
-        // Check PropValue (expected non-null and string)
-        if (!(propValue instanceof String)) {
-            setProperty(target, propName, type, propValue);
+        //
+        // Handle Date/Time/Duration Cases
+        if (!DateTimeType.NONE.equals(dateTimeType) || propType.equals(Date.class)) {
+            setDateTimeProperty(target, propName, propType, propValue, format, dateTimeType);
             return;
         }
 
         //
-        // Handle Date/Time/Duration Cases
-
-        // Check if its a Date time property
-        if (!type.equals(Date.class) && DateTimeType.NONE.equals(dateTimeType)) {
-            setProperty(target, propName, type, propValue);
+        // Handle Boolean
+        if (propType.equals(Boolean.class) && (propValue instanceof String)) {
+            // Cleanup Boolean String
+            final String cleanBoolStr = Strings.normalize((String) propValue);
+            setProperty(target, propName, propType, cleanBoolStr);
             return;
         }
 
+        //
+        // Default Handling (for all other Types)
+        setProperty(target, propName, propType, propValue);
+
+    }
+
+
+    /**
+     * Set the Date/Time property of the Target Bean.
+     */
+    private static void setDateTimeProperty(final Object target, final String propName, final Class<?> propType,
+            final Object propValue, final String format, final DateTimeType dateTimeType) throws Exception {
         // Input value Format
         final String dateFormatStr = Objects.isNull(format) || format.isBlank() ? "dd/MM/yyyy" : format;
 
@@ -150,62 +206,29 @@ public final class Beans {
         final SimpleDateFormat dateFmt = new SimpleDateFormat(dateFormatStr);
         final Date dateValue = dateFmt.parse((String) propValue);
 
-        // check if the PropType is Date
-        if (type.equals(Date.class)) {
-            setProperty(target, propName, type, dateValue);
-            return;
-        }
+        // Check if the PropType is Date
+        if (propType.equals(Date.class)) {
+            setProperty(target, propName, propType, dateValue);
 
-        // Convert to Long
-        final Long longValue;
-        if (DateTimeType.DURATION.equals(dateTimeType)) {
-            final Calendar calendar = Calendar.getInstance();
-            calendar.setTime(dateValue);
-            final long durationMillis = calendar.get(HOUR_OF_DAY) * 3600_000 + //
-                    calendar.get(MINUTE) * 60_000 + //
-                    calendar.get(SECOND) * 1_000;
-
-            longValue = durationMillis;
         } else {
-            longValue = dateValue.getTime();
-        }
+            // Convert to Long
+            final Long longValue;
+            if (DateTimeType.DURATION.equals(dateTimeType)) {
+                final Calendar calendar = Calendar.getInstance();
+                calendar.setTime(dateValue);
+                final long durationMillis = calendar.get(HOUR_OF_DAY) * 3600_000 + //
+                        calendar.get(MINUTE) * 60_000 + //
+                        calendar.get(SECOND) * 1_000;
 
-        setProperty(target, propName, type, longValue);
-        return;
-    }
-
-    /**
-     */
-    public static void setProperty(final Object target, final String propName, final Class<?> type,
-            final Object propValue) throws Exception {
-        try {
-            // Convert the specified value to the required type
-            final Object newValue;
-            if (propValue instanceof String) {
-                newValue = CONVERT_UTILS_BEAN.convert((String) propValue, type);
+                longValue = durationMillis;
             } else {
-                final Converter converter = CONVERT_UTILS_BEAN.lookup(type);
-                if (converter != null) {
-                    newValue = converter.convert(type, propValue);
-                } else {
-                    newValue = propValue;
-                }
+                longValue = dateValue.getTime();
             }
 
-            // Invoke the setter method
-            PROP_UTILS_BEAN.setProperty(target, propName, newValue);
-
-        } catch (Exception ex) {
-            //
+            setProperty(target, propName, propType, longValue);
         }
-    }
 
-    /**
-     */
-    public static Object getProperty(final Object bean, final String propName) throws Exception {
-        final Object value = PROP_UTILS_BEAN.getSimpleProperty(bean, propName);
-        return value;
+        //
     }
-
 
 }
