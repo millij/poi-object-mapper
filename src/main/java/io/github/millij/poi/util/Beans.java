@@ -35,6 +35,13 @@ public final class Beans {
     }
 
 
+    //
+    // Constants
+
+    private static final PropertyUtilsBean PROP_UTILS_BEAN = new PropertyUtilsBean();
+    private static final ConvertUtilsBean CONVERT_UTILS_BEAN = new ConvertUtilsBean();
+
+
     // Static Utilities
     // ------------------------------------------------------------------------
 
@@ -68,7 +75,7 @@ public final class Beans {
      */
     public static String getFieldValueAsString(final Object beanObj, final String fieldName) throws Exception {
         // Property Descriptor
-        final PropertyDescriptor pd = new PropertyDescriptor(fieldName, beanObj.getClass());
+        final PropertyDescriptor pd = PROP_UTILS_BEAN.getPropertyDescriptor(beanObj, fieldName);
         final Method getterMtd = pd.getReadMethod();
 
         final Object value = getterMtd.invoke(beanObj);
@@ -104,9 +111,6 @@ public final class Beans {
 
     // Set Property
     // ------------------------------------------------------------------------
-
-    private static final PropertyUtilsBean PROP_UTILS_BEAN = new PropertyUtilsBean();
-    private static final ConvertUtilsBean CONVERT_UTILS_BEAN = new ConvertUtilsBean();
 
     public static void setProperty(final Object target, final String propName, final Object propValue,
             final String format, final DateTimeType dateTimeType) throws Exception {
