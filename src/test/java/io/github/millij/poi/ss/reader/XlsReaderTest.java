@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -169,12 +170,37 @@ public class XlsReaderTest {
                 employees.add(employee);
                 LOGGER.info("test_read_xls_single_sheet_with_callback :: Output - {}", employee);
 
+                // ?
             }
 
         });
 
         Assert.assertNotNull(employees);
         Assert.assertTrue(employees.size() > 0);
+    }
+
+
+    // Read to Map
+
+    @Test
+    public void test_read_xlsx_as_Map() throws SpreadsheetReadException, FileNotFoundException {
+        // Excel Reader
+        LOGGER.info("test_read_xlsx_as_Map :: Reading file - {}", _filepath_xls_single_sheet);
+
+        // File
+        final File xlsxFile = new File(_filepath_xls_single_sheet);
+
+        // Reader
+        final XlsReader reader = new XlsReader();
+
+        List<Map<String, Object>> employees = reader.read(new FileInputStream(xlsxFile), 1);
+        Assert.assertNotNull(employees);
+        Assert.assertTrue(employees.size() > 0);
+
+        for (Map<String, Object> emp : employees) {
+            LOGGER.info("test_read_xlsx_as_Map :: Output - {}", emp);
+        }
+
     }
 
 }

@@ -2,6 +2,7 @@ package io.github.millij.poi.ss.reader;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -23,6 +24,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
 import io.github.millij.poi.SpreadsheetReadException;
+import io.github.millij.poi.ss.handler.RowContentsAsMapHandler;
 import io.github.millij.poi.ss.handler.RowContentsHandler;
 import io.github.millij.poi.ss.handler.RowListener;
 import io.github.millij.poi.util.Beans;
@@ -133,6 +135,78 @@ public class XlsxReader extends AbstractSpreadsheetReader {
     }
 
 
+    //
+    // Read to Map
+
+    @Override
+    public void read(final InputStream is, final RowListener<Map<String, Object>> listener)
+            throws SpreadsheetReadException {
+
+        // Read
+        try (final OPCPackage opcPkg = OPCPackage.open(is)) {
+            // XSSF Reader
+            final XSSFReader xssfReader = new XSSFReader(opcPkg);
+
+            // XML Reader
+            final XMLReader xmlReader = this.newXMLReaderInstance(opcPkg, xssfReader, listener);
+
+            // Iterate over sheets
+            for (SheetIterator worksheets = (SheetIterator) xssfReader.getSheetsData(); worksheets.hasNext();) {
+                final InputStream sheetInpStream = worksheets.next();
+                final String sheetName = worksheets.getSheetName();
+                LOGGER.debug("Reading XLSX Sheet :: ", sheetName);
+
+                // Parse sheet
+                xmlReader.parse(new InputSource(sheetInpStream));
+                sheetInpStream.close();
+            }
+
+        } catch (Exception ex) {
+            String errMsg = String.format("Error reading sheet data, to Map : %s", ex.getMessage());
+            LOGGER.error(errMsg, ex);
+            throw new SpreadsheetReadException(errMsg, ex);
+        }
+
+    }
+
+    @Override
+    public void read(final InputStream is, final int sheetNo, final RowListener<Map<String, Object>> listener)
+            throws SpreadsheetReadException {
+        try (final OPCPackage opcPkg = OPCPackage.open(is)) {
+            // XSSF Reader
+            final XSSFReader xssfReader = new XSSFReader(opcPkg);
+
+            // XML Reader
+            final XMLReader xmlReader = this.newXMLReaderInstance(opcPkg, xssfReader, listener);
+
+            // Iterate over sheets
+            final SheetIterator worksheets = (SheetIterator) xssfReader.getSheetsData();
+            for (int i = 1; worksheets.hasNext(); i++) {
+                // Get Sheet
+                final InputStream sheetInpStream = worksheets.next();
+                final String sheetName = worksheets.getSheetName();
+
+                // Check for Sheet No.
+                if (i != sheetNo) {
+                    continue;
+                }
+
+                LOGGER.debug("Reading XLSX Sheet :: #{} - {}", i, sheetName);
+
+                // Parse Sheet
+                xmlReader.parse(new InputSource(sheetInpStream));
+                sheetInpStream.close();
+            }
+
+        } catch (Exception ex) {
+            String errMsg = String.format("Error reading sheet %d, to Map : %s", sheetNo, ex.getMessage());
+            LOGGER.error(errMsg, ex);
+            throw new SpreadsheetReadException(errMsg, ex);
+        }
+
+    }
+
+
     // Private Methods
     // ------------------------------------------------------------------------
 
@@ -154,6 +228,23 @@ public class XlsxReader extends AbstractSpreadsheetReader {
         final ReadOnlySharedStringsTable ssTable = new ReadOnlySharedStringsTable(opcPkg);
         final SheetContentsHandler sheetHandler =
                 new RowContentsHandler<T>(beanClz, listener, headerRowIdx, lastRowIdx);
+
+        final ContentHandler handler = new XSSFSheetXMLHandler(styles, ssTable, sheetHandler, true);
+
+        // XML Reader
+        final XMLReader xmlReader = XMLHelper.newXMLReader();
+        xmlReader.setContentHandler(handler);
+
+        return xmlReader;
+    }
+
+    private XMLReader newXMLReaderInstance(final OPCPackage opcPkg, final XSSFReader xssfReader,
+            final RowListener<Map<String, Object>> listener)
+            throws InvalidFormatException, IOException, SAXException, ParserConfigurationException {
+        // Content Handler
+        final StylesTable styles = xssfReader.getStylesTable();
+        final ReadOnlySharedStringsTable ssTable = new ReadOnlySharedStringsTable(opcPkg);
+        final SheetContentsHandler sheetHandler = new RowContentsAsMapHandler(listener, headerRowIdx, lastRowIdx);
 
         final ContentHandler handler = new XSSFSheetXMLHandler(styles, ssTable, sheetHandler, true);
 

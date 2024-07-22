@@ -22,6 +22,7 @@ import io.github.millij.poi.SpreadsheetReadException;
 import io.github.millij.poi.ss.handler.RowListener;
 import io.github.millij.poi.ss.model.Column;
 import io.github.millij.poi.util.Spreadsheet;
+import io.github.millij.poi.util.Strings;
 
 
 /**
@@ -81,7 +82,6 @@ public class XlsReader extends AbstractSpreadsheetReader {
             LOGGER.error(errMsg, ex);
             throw new SpreadsheetReadException(errMsg, ex);
         }
-
     }
 
     @Override
@@ -110,13 +110,89 @@ public class XlsReader extends AbstractSpreadsheetReader {
 
 
     //
+    // Read to Map
+
+    @Override
+    public void read(final InputStream is, final RowListener<Map<String, Object>> listener)
+            throws SpreadsheetReadException {
+        try {
+            final HSSFWorkbook wb = new HSSFWorkbook(is);
+            final int sheetCount = wb.getNumberOfSheets();
+            LOGGER.debug("Total no. of sheets found in HSSFWorkbook : #{}", sheetCount);
+
+            // Iterate over sheets
+            for (int i = 0; i < sheetCount; i++) {
+                final HSSFSheet sheet = wb.getSheetAt(i);
+                LOGGER.debug("Processing HSSFSheet at No. : {}", i);
+
+                // Process Sheet
+                this.processSheet(sheet, listener);
+            }
+
+            // Close workbook
+            wb.close();
+        } catch (Exception ex) {
+            String errMsg = String.format("Error reading HSSFSheet, to Map : %s", ex.getMessage());
+            LOGGER.error(errMsg, ex);
+            throw new SpreadsheetReadException(errMsg, ex);
+        }
+    }
+
+    @Override
+    public void read(final InputStream is, final int sheetNo, final RowListener<Map<String, Object>> listener)
+            throws SpreadsheetReadException {
+        try {
+            final HSSFWorkbook wb = new HSSFWorkbook(is);
+            final HSSFSheet sheet = wb.getSheetAt(sheetNo - 1); // subtract 1 as Workbook follows 0-based index
+
+            // Process Sheet
+            this.processSheet(sheet, listener);
+
+            // Close workbook
+            wb.close();
+        } catch (Exception ex) {
+            String errMsg = String.format("Error reading sheet %d, to Map : %s", sheetNo, ex.getMessage());
+            LOGGER.error(errMsg, ex);
+            throw new SpreadsheetReadException(errMsg, ex);
+        }
+    }
+
+
+    //
     // Protected Methods
     // ------------------------------------------------------------------------
+
+    protected void processSheet(final HSSFSheet sheet, final RowListener<Map<String, Object>> eventHandler) {
+        // Header column - name mapping
+        final HSSFRow headerRowObj = sheet.getRow(headerRowIdx);
+        final Map<String, String> headerCellRefsMap = this.asHeaderNameToCellRefMap(headerRowObj, false);
+
+        final Iterator<Row> rows = sheet.rowIterator();
+        while (rows.hasNext()) {
+            // Process Row Data
+            final HSSFRow row = (HSSFRow) rows.next();
+            final int rowNum = row.getRowNum();
+
+            // Skip rows before Header ROW and after Last ROW
+            if (rowNum < headerRowIdx || rowNum > lastRowIdx) {
+                continue;
+            }
+
+            final Map<String, Object> rowDataMap = this.extractRowDataAsMap(row);
+            if (rowDataMap == null || rowDataMap.isEmpty()) {
+                continue;
+            }
+
+            // Row data as Bean
+            final Map<String, Object> rowBean = Spreadsheet.rowAsMap(headerCellRefsMap, rowDataMap);
+            eventHandler.row(rowNum, rowBean);
+        }
+    }
 
     protected <T> void processSheet(final Class<T> beanClz, final HSSFSheet sheet, final RowListener<T> eventHandler) {
         // Header column - name mapping
         final HSSFRow headerRowObj = sheet.getRow(headerRowIdx);
-        final Map<String, String> headerCellRefsMap = this.asHeaderNameToCellRefMap(headerRowObj);
+        final Map<String, String> headerCellRefsMap = this.asHeaderNameToCellRefMap(headerRowObj, true);
 
         // Bean Properties - column name mapping
         final Map<String, Column> propColumnMap = Spreadsheet.getPropertyToColumnDefMap(beanClz);
@@ -147,7 +223,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
     // Private Methods
     // ------------------------------------------------------------------------
 
-    private Map<String, String> asHeaderNameToCellRefMap(final HSSFRow headerRow) {
+    private Map<String, String> asHeaderNameToCellRefMap(final HSSFRow headerRow, final boolean normalizeHeaderName) {
         // Sanity checks
         if (Objects.isNull(headerRow)) {
             return new HashMap<>();
@@ -164,9 +240,9 @@ public class XlsReader extends AbstractSpreadsheetReader {
             // Cell Value
             final Object header = this.getCellValue(cell);
 
-            final String headerName = Objects.isNull(header) ? "" : String.valueOf(header);
-            final String normalHeaderName = Spreadsheet.normalize(headerName);
-            headerCellRefs.put(normalHeaderName, cellColRef);
+            final String rawHeaderName = Objects.isNull(header) ? "" : String.valueOf(header);
+            final String headerName = normalizeHeaderName ? Strings.normalize(rawHeaderName) : rawHeaderName;
+            headerCellRefs.put(headerName, cellColRef);
         }
 
         return headerCellRefs;

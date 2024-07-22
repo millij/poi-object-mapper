@@ -22,7 +22,7 @@ This library is available in [Maven Central](https://mvnrepository.com/artifact/
 <dependency>
     <groupId>io.github.millij</groupId>
     <artifactId>poi-object-mapper</artifactId>
-    <version>3.0.0</version>
+    <version>3.1.0</version>
 </dependency>
 ```
 
@@ -76,11 +76,24 @@ Reading spreadsheet rows as objects ..
 
 ```java
     ...
-    final File xlsxFile = new File("<path_to_file>");
+    final File xlsFile = new File("<path_to_file>");
     final XlsReader reader = new XlsReader();
-    final List<Employee> employees = reader.read(Employee.class, xlsxFile);
+    final List<Employee> employees = reader.read(Employee.class, xlsFile);
     ...
 ```
+
+##### Reading Rows as Map (when there is no mapping bean)
+
+Reading spreadsheet rows as `Map<String, Object>` Objects ..
+
+```java
+    ...
+    final File xlsxFile = new File("<path_to_file>");
+    final XlsxReader reader = new XlsxReader(); // OR XlsReader as needed
+    final List<Map<String, Object>> rowObjects = reader.read(xlsxFile);
+    ...
+```
+
 
 ##### Writing a collection of objects to file
 

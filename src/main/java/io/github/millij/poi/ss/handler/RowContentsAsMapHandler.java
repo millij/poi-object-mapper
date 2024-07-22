@@ -7,19 +7,19 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.github.millij.poi.ss.model.Column;
 import io.github.millij.poi.util.Spreadsheet;
-import io.github.millij.poi.util.Strings;
 
 
-public class RowContentsHandler<T> extends AbstractSheetContentsHandler {
+/**
+ * SheetContentsHandler impl for reading row as {@link Map}
+ * 
+ * @since 3.1.0
+ */
+public class RowContentsAsMapHandler extends AbstractSheetContentsHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RowContentsHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RowContentsAsMapHandler.class);
 
-    private final Class<T> beanClz;
-    private final Map<String, Column> beanPropColumnMap;
-
-    private final RowListener<T> listener;
+    private final RowListener<Map<String, Object>> listener;
 
     private final int headerRowNum;
     private final Map<String, String> headerCellRefsMap;
@@ -30,13 +30,10 @@ public class RowContentsHandler<T> extends AbstractSheetContentsHandler {
     // Constructors
     // ------------------------------------------------------------------------
 
-    public RowContentsHandler(Class<T> beanClz, RowListener<T> listener, int headerRowNum, int lastRowNum) {
+    public RowContentsAsMapHandler(RowListener<Map<String, Object>> listener, int headerRowNum, int lastRowNum) {
         super();
 
         // init
-        this.beanClz = beanClz;
-        this.beanPropColumnMap = Spreadsheet.getPropertyToColumnDefMap(beanClz);
-
         this.listener = listener;
 
         this.headerRowNum = headerRowNum;
@@ -84,7 +81,7 @@ public class RowContentsHandler<T> extends AbstractSheetContentsHandler {
         // Check for Column Definitions before processing NON-Header ROWs
 
         // Row As Bean
-        final T rowBean = Spreadsheet.rowAsBean(beanClz, beanPropColumnMap, headerCellRefsMap, rowDataMap);
+        final Map<String, Object> rowBean = Spreadsheet.rowAsMap(headerCellRefsMap, rowDataMap);
         if (Objects.isNull(rowBean)) {
             LOGGER.debug("Unable to construct Row data Bean object - Row #{}", rowNum);
             return;
@@ -115,8 +112,7 @@ public class RowContentsHandler<T> extends AbstractSheetContentsHandler {
             final Object header = headerRowData.get(colRef);
 
             final String headerName = Objects.isNull(header) ? "" : String.valueOf(header);
-            final String normalHeaderName = Strings.normalize(headerName);
-            headerCellRefs.put(normalHeaderName, colRef);
+            headerCellRefs.put(headerName, colRef);
         }
 
         LOGGER.debug("Header Name to Cell Refs : {}", headerCellRefs);
