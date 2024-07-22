@@ -37,6 +37,9 @@ dependencies {
     // Test compile
     // ----------------------------------------------------------------------------------
 
+    testImplementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.19.0'
+    testImplementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j2-impl', version: '2.19.0'
+
     testImplementation group: 'junit', name: 'junit', version: '4.12'
 
 }
