@@ -22,6 +22,7 @@ import io.github.millij.poi.SpreadsheetReadException;
 import io.github.millij.poi.ss.handler.RowListener;
 import io.github.millij.poi.ss.model.Column;
 import io.github.millij.poi.util.Spreadsheet;
+import io.github.millij.poi.util.Strings;
 
 
 /**
@@ -240,7 +241,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
             final Object header = this.getCellValue(cell);
 
             final String rawHeaderName = Objects.isNull(header) ? "" : String.valueOf(header);
-            final String headerName = normalizeHeaderName ? Spreadsheet.normalize(rawHeaderName) : rawHeaderName;
+            final String headerName = normalizeHeaderName ? Strings.normalize(rawHeaderName) : rawHeaderName;
             headerCellRefs.put(headerName, cellColRef);
         }
 

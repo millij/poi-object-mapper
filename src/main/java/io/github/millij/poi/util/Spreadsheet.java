@@ -261,7 +261,7 @@ public final class Spreadsheet {
                 final String propColName = propColDef.getName();
 
                 // Get the Header Cell Ref
-                final String normalizedColName = Spreadsheet.normalize(propColName);
+                final String normalizedColName = Strings.normalize(propColName);
                 final String propCellRef = headerCellRefsMap.get(normalizedColName);
                 if (Objects.isNull(propCellRef) || propCellRef.isBlank()) {
                     LOGGER.debug("{} :: No Cell Ref found [Prop - Col] : [{} - {}]", beanClz, propName, propColName);
@@ -278,8 +278,9 @@ public final class Spreadsheet {
                     // Set the property value in the current row object bean
                     Beans.setProperty(bean, propName, propValue, dataFormat, datetimeType);
                 } catch (Exception ex) {
-                    String errMsg = String.format("Failed to set bean property - %s, value - %s", propName, propValue);
-                    LOGGER.error(errMsg, ex);
+                    String exMsg = ex.getMessage();
+                    String errMsg = String.format("Error setting prop - %s, val - %s : %s", propName, propValue, exMsg);
+                    LOGGER.error(errMsg);
                 }
 
             }
@@ -303,7 +304,7 @@ public final class Spreadsheet {
             // Prop Column Definition
             final Column propColDef = propColumnMap.get(propName);
             final String propColName = propColDef.getName();
-            final String normalizedColName = Spreadsheet.normalize(propColName);
+            final String normalizedColName = Strings.normalize(propColName);
 
             // Get the Header Cell Ref
             final String propCellRef = headerCellRefsMap.containsKey(propColName) //
@@ -334,18 +335,12 @@ public final class Spreadsheet {
 
     /**
      * Normalize the string. typically used for case-insensitive comparison.
+     * 
+     * @deprecated in favor of {@link Strings#normalize(String)}
      */
+    @Deprecated
     public static String normalize(final String inStr) {
-        // Sanity checks
-        if (Objects.isNull(inStr)) {
-            return "";
-        }
-
-        // Special characters
-        final String cleanStr = inStr.replaceAll("–", " ").replaceAll("[-\\[\\]/{}:.,;#%=()*+?\\^$|<>&\"\'\\\\]", " ");
-        final String normalizedStr = cleanStr.toLowerCase().trim().replaceAll("\\s+", "_");
-
-        return normalizedStr;
+        return Strings.normalize(inStr);
     }
 
 
