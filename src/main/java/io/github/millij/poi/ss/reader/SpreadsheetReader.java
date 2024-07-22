@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 import io.github.millij.poi.SpreadsheetReadException;
 import io.github.millij.poi.ss.handler.RowListener;
@@ -193,6 +194,59 @@ public interface SpreadsheetReader {
             throw new SpreadsheetReadException(errMsg, ex);
         }
     }
+
+
+    //
+    // Read to Map
+
+    /**
+     * Reads the spreadsheet file as Generic {@link Map} beans. Note that only the requested sheet (sheet numbers are
+     * indexed from 0) will be read.
+     * 
+     * @param is {@link InputStream} of the spreadsheet file
+     * @param listener Custom {@link RowListener} implementation for row data callbacks.
+     * 
+     * @throws SpreadsheetReadException when the file data is not readable or row data to bean mapping failed.
+     */
+    void read(InputStream is, RowListener<Map<String, Object>> listener) throws SpreadsheetReadException;
+
+    /**
+     * Reads the spreadsheet file as Generic {@link Map} beans. Note that only the requested sheet (sheet numbers are
+     * indexed from 0) will be read.
+     * 
+     * @param is {@link InputStream} of the spreadsheet file
+     * @param sheetNo index of the Sheet to be read (index starts from 1)
+     * @param listener Custom {@link RowListener} implementation for row data callbacks.
+     * 
+     * @throws SpreadsheetReadException when the file data is not readable or row data to bean mapping failed.
+     */
+    void read(InputStream is, int sheetNo, RowListener<Map<String, Object>> listener) throws SpreadsheetReadException;
+
+
+    /**
+     * Reads the spreadsheet file as Generic {@link Map} beans. Note that only the requested sheet (sheet numbers are
+     * indexed from 0) will be read.
+     * 
+     * @param is {@link InputStream} of the spreadsheet file
+     * 
+     * @return a {@link List} of {@link Map} objects
+     * 
+     * @throws SpreadsheetReadException when the file data is not readable or row data to bean mapping failed.
+     */
+    List<Map<String, Object>> read(InputStream is) throws SpreadsheetReadException;
+
+    /**
+     * Reads the spreadsheet file as Generic {@link Map} beans. Note that only the requested sheet (sheet numbers are
+     * indexed from 0) will be read.
+     * 
+     * @param is {@link InputStream} of the spreadsheet file
+     * @param sheetNo index of the Sheet to be read (index starts from 1)
+     * 
+     * @return a {@link List} of {@link Map} objects
+     * 
+     * @throws SpreadsheetReadException when the file data is not readable or row data to bean mapping failed.
+     */
+    List<Map<String, Object>> read(InputStream is, int sheetNo) throws SpreadsheetReadException;
 
 
 }
