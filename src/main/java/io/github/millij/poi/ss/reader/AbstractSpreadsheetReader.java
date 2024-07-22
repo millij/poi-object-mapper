@@ -2,6 +2,7 @@ package io.github.millij.poi.ss.reader;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +69,36 @@ abstract class AbstractSpreadsheetReader implements SpreadsheetReader {
 
         // Result
         final List<T> beans = beanCollector.getBeans();
+        return beans;
+    }
+
+
+    //
+    // Read to Map
+
+    @Override
+    public List<Map<String, Object>> read(final InputStream is) throws SpreadsheetReadException {
+        // Row Collector
+        final RowBeanCollector<Map<String, Object>> beanCollector = new RowBeanCollector<>();
+
+        // Read with callback to fill list
+        this.read(is, beanCollector);
+
+        // Result
+        final List<Map<String, Object>> beans = beanCollector.getBeans();
+        return beans;
+    }
+
+    @Override
+    public List<Map<String, Object>> read(final InputStream is, final int sheetNo) throws SpreadsheetReadException {
+        // Row Collector
+        final RowBeanCollector<Map<String, Object>> beanCollector = new RowBeanCollector<>();
+
+        // Read with callback to fill list
+        this.read(is, sheetNo, beanCollector);
+
+        // Result
+        final List<Map<String, Object>> beans = beanCollector.getBeans();
         return beans;
     }
 
