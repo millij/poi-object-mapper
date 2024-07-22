@@ -7,11 +7,11 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -181,25 +181,25 @@ public class XlsxReaderTest {
 
     // Read to Map
 
-
-    @Ignore
     @Test
-    public void test_read_xlsx_as_Map() throws FileNotFoundException {
+    public void test_read_xlsx_as_Map() throws SpreadsheetReadException, FileNotFoundException {
         // Excel Reader
         LOGGER.info("test_read_xlsx_as_Map :: Reading file - {}", _filepath_xlsx_single_sheet);
 
-        /*
+        // File
+        final File xlsxFile = new File(_filepath_xlsx_single_sheet);
+
         // Reader
         final XlsxReader reader = new XlsxReader();
 
-        List<Map<String, Object>> employees = reader.readAsMap(new File(_filepath_xlsx_single_sheet), 1);
+        List<Map<String, Object>> employees = reader.read(new FileInputStream(xlsxFile), 1);
         Assert.assertNotNull(employees);
         Assert.assertTrue(employees.size() > 0);
 
         for (Map<String, Object> emp : employees) {
             LOGGER.info("test_read_xlsx_single_sheet :: Output - {}", emp);
         }
-        */
+
     }
 
 
