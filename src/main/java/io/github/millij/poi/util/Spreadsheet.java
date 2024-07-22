@@ -206,6 +206,37 @@ public final class Spreadsheet {
     // Write to Bean :: from Row data
     // ------------------------------------------------------------------------
 
+    public static Map<String, Object> rowAsMap(final Map<String, String> headerCellRefsMap,
+            final Map<String, Object> rowDataMap) {
+        //
+        try {
+            // Create new Instance
+            final Map<String, Object> beanMap = new HashMap<String, Object>();
+
+            for (final String propColName : headerCellRefsMap.keySet()) {
+                // Get the Header Cell Ref
+                final String propCellRef = headerCellRefsMap.get(propColName);
+                if (Objects.isNull(propCellRef) || propCellRef.isBlank()) {
+                    continue;
+                }
+
+                // Property Value and Format
+                final Object propValue = rowDataMap.get(propCellRef);
+
+                // set
+                beanMap.put(propColName, propValue);
+            }
+
+            return beanMap;
+        } catch (Exception ex) {
+            String errMsg = String.format("Error while creating Row Map, from - %s", rowDataMap);
+            LOGGER.error(errMsg, ex);
+        }
+
+        return null;
+    }
+
+
     public static <T> T rowAsBean(Class<T> beanClz, Map<String, Column> propColumnMap,
             Map<String, String> headerCellRefsMap, Map<String, Object> rowDataMap) {
         // Sanity checks
