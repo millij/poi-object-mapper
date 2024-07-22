@@ -155,6 +155,7 @@ public final class Beans {
 
     /**
      */
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static void setProperty(final Object target, final String propName, final Object propValue,
             final String format, final DateTimeType dateTimeType) throws Exception {
         // Sanity checks
@@ -179,10 +180,19 @@ public final class Beans {
         }
 
         //
+        // Handle ENUM
+        if (propType.isEnum() && (propValue instanceof String)) {
+            final String cleanEnumStr = Strings.normalize((String) propValue).toUpperCase();
+            final Enum<?> enumValue = Enum.valueOf((Class<? extends Enum>) propType, cleanEnumStr);
+            setProperty(target, propName, propType, enumValue);
+            return;
+        }
+
+        //
         // Handle Boolean
         if (propType.equals(Boolean.class) && (propValue instanceof String)) {
             // Cleanup Boolean String
-            final String cleanBoolStr = Strings.normalize((String) propValue);
+            final String cleanBoolStr = Strings.normalize((String) propValue); // for cases like "FALSE()", "TRUE()"
             setProperty(target, propName, propType, cleanBoolStr);
             return;
         }

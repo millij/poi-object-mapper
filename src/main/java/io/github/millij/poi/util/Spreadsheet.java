@@ -278,8 +278,9 @@ public final class Spreadsheet {
                     // Set the property value in the current row object bean
                     Beans.setProperty(bean, propName, propValue, dataFormat, datetimeType);
                 } catch (Exception ex) {
-                    String errMsg = String.format("Failed to set bean property - %s, value - %s", propName, propValue);
-                    LOGGER.error(errMsg, ex);
+                    String exMsg = ex.getMessage();
+                    String errMsg = String.format("Error setting prop - %s, val - %s : %s", propName, propValue, exMsg);
+                    LOGGER.error(errMsg);
                 }
 
             }
