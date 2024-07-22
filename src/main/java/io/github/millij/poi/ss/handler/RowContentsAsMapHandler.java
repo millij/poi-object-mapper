@@ -10,6 +10,11 @@ import org.slf4j.LoggerFactory;
 import io.github.millij.poi.util.Spreadsheet;
 
 
+/**
+ * SheetContentsHandler impl for reading row as {@link Map}
+ * 
+ * @since 3.1.0
+ */
 public class RowContentsAsMapHandler extends AbstractSheetContentsHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RowContentsAsMapHandler.class);

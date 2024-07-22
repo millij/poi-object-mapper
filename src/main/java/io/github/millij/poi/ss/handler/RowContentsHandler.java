@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import io.github.millij.poi.ss.model.Column;
 import io.github.millij.poi.util.Spreadsheet;
+import io.github.millij.poi.util.Strings;
 
 
 public class RowContentsHandler<T> extends AbstractSheetContentsHandler {
@@ -114,7 +115,7 @@ public class RowContentsHandler<T> extends AbstractSheetContentsHandler {
             final Object header = headerRowData.get(colRef);
 
             final String headerName = Objects.isNull(header) ? "" : String.valueOf(header);
-            final String normalHeaderName = Spreadsheet.normalize(headerName);
+            final String normalHeaderName = Strings.normalize(headerName);
             headerCellRefs.put(normalHeaderName, colRef);
         }
 
