@@ -160,6 +160,39 @@ abstract class AbstractSpreadsheetWriter implements SpreadsheetWriter {
     }
 
 
+    @Override
+    public void createTemplate(final String sheetName, final List<String> headers) {
+        // Sanity check
+        if (Objects.isNull(headers)) {
+            throw new IllegalArgumentException("AbstractSpreadsheetWriter :: Headers list is NULL");
+        }
+
+        try {
+            final Sheet exSheet = workbook.getSheet(sheetName);
+            if (Objects.nonNull(exSheet)) {
+                String errMsg = String.format("A Sheet with the passed name already exists : %s", sheetName);
+                throw new IllegalArgumentException(errMsg);
+            }
+
+            // Create sheet
+            final Sheet sheet = Objects.isNull(sheetName) || sheetName.isBlank() //
+                    ? workbook.createSheet() //
+                    : workbook.createSheet(sheetName);
+            LOGGER.debug("Added new Sheet[name] to the workbook : {}", sheet.getSheetName());
+
+            // Header
+            final Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < headers.size(); i++) {
+                final Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers.get(i));
+            }
+        } catch (Exception ex) {
+            String errMsg = String.format("Error while preparing sheet with passed row objects : %s", ex.getMessage());
+            LOGGER.error(errMsg, ex);
+        }
+    }
+
+
     // Sheet :: Append to existing
 
 

@@ -73,7 +73,28 @@ public interface SpreadsheetWriter {
      */
     <T> void addSheet(Class<T> beanClz, List<T> beans, String sheetName, List<String> headers);
 
+
+    /**
+     * This method will attempt to add a new sheet and add the rows of data from the rows data.
+     * 
+     * @param rowsData List of row data as Map. The map elements contains the value for the header as
+     *        key.
+     * @param sheetName Name of the Sheet. (set it to <code>null</code> for default name)
+     * @param headers a {@link List} of Header names to write in the file. <code>null</code> or empty
+     *        list will default to all writable properties.
+     */
     void addSheet(List<Map<String, String>> rowsData, String sheetName, List<String> headers);
+
+
+    /**
+     * This method will attempt to add a new empty sheet with just headers. The resulting sheet can be
+     * treated as a template to fill the data by users.
+     * 
+     * @param sheetName Name of the Sheet. (set it to <code>null</code> for default name)
+     * @param headers a {@link List} of Header names to write in the file. <code>null</code> or empty
+     *        list will default to all writable properties.
+     */
+    void createTemplate(String sheetName, List<String> headers);
 
 
     /**
