@@ -176,4 +176,28 @@ public class XlsxWriterTest {
         gew.write(filepath_output_file);
     }
 
+    @Test
+    public void test_write_map_as_xlsx_sheet_default_sheetname() throws IOException {
+        final String filepath_output_file = _path_test_output.concat("map_2_sheets_default_sheetname.xlsx");
+
+        // Excel Writer
+        LOGGER.info("test_write_map_as_xlsx_sheet_default_sheetname :: Writing to file - {}", filepath_output_file);
+        SpreadsheetWriter gew = new XlsWriter();
+
+        // Headers
+        final List<String> headers = new ArrayList<>();
+        headers.add("Slno.");
+        headers.add("Name");
+        headers.add("Age");
+        headers.add("Gender");
+        headers.add("Height (mts)");
+        headers.add("Address");
+
+        // Add Sheets
+        gew.addSheet(new ArrayList<>(), null, headers);
+
+        // Write
+        gew.write(filepath_output_file);
+    }
+
 }
