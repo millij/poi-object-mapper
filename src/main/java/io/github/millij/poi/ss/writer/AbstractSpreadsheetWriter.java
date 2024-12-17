@@ -109,6 +109,56 @@ abstract class AbstractSpreadsheetWriter implements SpreadsheetWriter {
         }
     }
 
+    @Override
+    public void addSheet(final List<Map<String, String>> rowsData, final String inSheetName,
+            final List<String> inHeaders) {
+        // Sanity check
+        if (Objects.isNull(rowsData)) {
+            throw new IllegalArgumentException("AbstractSpreadsheetWriter :: Rows data map is NULL");
+        }
+        if (Objects.isNull(inHeaders)) {
+            throw new IllegalArgumentException("AbstractSpreadsheetWriter :: Headers list is NULL");
+        }
+
+        try {
+            final Sheet exSheet = workbook.getSheet(inSheetName);
+            if (Objects.nonNull(exSheet)) {
+                String errMsg = String.format("A Sheet with the passed name already exists : %s", inSheetName);
+                throw new IllegalArgumentException(errMsg);
+            }
+
+            // Create sheet
+            final Sheet sheet = Objects.isNull(inSheetName) || inSheetName.isBlank() //
+                    ? workbook.createSheet() //
+                    : workbook.createSheet(inSheetName);
+            LOGGER.debug("Added new Sheet[name] to the workbook : {}", sheet.getSheetName());
+
+            // Header
+            final Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < inHeaders.size(); i++) {
+                final Cell cell = headerRow.createCell(i);
+                cell.setCellValue(inHeaders.get(i));
+            }
+
+            // Data Rows
+            for (int i = 0, rowNum = 1; i < rowsData.size(); i++, rowNum++) {
+                final Row row = sheet.createRow(rowNum);
+                final Map<String, String> rowData = rowsData.get(i);
+
+                for (int cellNo = 0; cellNo < inHeaders.size(); cellNo++) {
+                    final String key = inHeaders.get(cellNo);
+                    final String value = rowData.get(key);
+
+                    final Cell cell = row.createCell(cellNo);
+                    cell.setCellValue(value);
+                }
+            }
+        } catch (Exception ex) {
+            String errMsg = String.format("Error while preparing sheet with passed row objects : %s", ex.getMessage());
+            LOGGER.error(errMsg, ex);
+        }
+    }
+
 
     // Sheet :: Append to existing
 

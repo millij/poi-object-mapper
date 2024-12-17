@@ -2,6 +2,7 @@ package io.github.millij.poi.ss.writer;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -71,6 +72,8 @@ public interface SpreadsheetWriter {
      *        to all writable properties.
      */
     <T> void addSheet(Class<T> beanClz, List<T> beans, String sheetName, List<String> headers);
+
+    void addSheet(List<Map<String, String>> rowsData, String sheetName, List<String> headers);
 
 
     /**
