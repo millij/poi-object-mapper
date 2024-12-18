@@ -146,7 +146,8 @@ public class XlsWriterTest {
         rowsDataMap.add(rowDataMap);
 
         // Add Sheets
-        gew.addSheet(rowsDataMap, "test_sheet", headers);
+        final String sheetName = "test_sheet";
+        gew.addSheet(sheetName, headers, rowsDataMap);
 
         // Write
         gew.write(filepath_output_file);
@@ -170,31 +171,8 @@ public class XlsWriterTest {
         headers.add("Address");
 
         // Add Sheets
-        gew.addSheet(new ArrayList<>(), null, headers);
-
-        // Write
-        gew.write(filepath_output_file);
-    }
-
-    @Test
-    public void test_write_map_as_template_xls_sheet() throws IOException {
-        final String filepath_output_file = _path_test_output.concat("map_2_template_sheets.xls");
-
-        // Excel Writer
-        LOGGER.info("test_write_map_as_template_xls_sheet :: Writing to file - {}", filepath_output_file);
-        SpreadsheetWriter gew = new XlsWriter();
-
-        // Headers
-        final List<String> headers = new ArrayList<>();
-        headers.add("Slno.");
-        headers.add("Name");
-        headers.add("Age");
-        headers.add("Gender");
-        headers.add("Height (mts)");
-        headers.add("Address");
-
-        // Add Sheets
-        gew.createTemplate("test_sheet", headers);
+        final String sheetName = null;
+        gew.addSheet(sheetName, headers, new ArrayList<>());
 
         // Write
         gew.write(filepath_output_file);
