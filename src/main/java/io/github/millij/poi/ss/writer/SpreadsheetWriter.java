@@ -75,9 +75,9 @@ public interface SpreadsheetWriter {
 
 
     /**
-     * This method will attempt to add a new sheet and add the rows of data from the rows data. The null
-     * element in the rows data list will be skipped and no rows will be added to the sheet. An empty
-     * row in the sheet will be added in the sheet for empty {@link Map} in the rows data.
+     * This method will attempt to add a new sheet and add the rows of data from the rows data. The
+     * <code>null</code> entry in the rows data list will be skipped and no rows will be added to the
+     * sheet.
      * 
      * @param sheetName Name of the Sheet. (set it to <code>null</code> for default name)
      * @param headers a {@link List} of Header names to write in the file. <code>null</code> or empty
