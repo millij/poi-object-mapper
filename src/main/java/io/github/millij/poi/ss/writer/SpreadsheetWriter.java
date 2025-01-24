@@ -1,8 +1,11 @@
 package io.github.millij.poi.ss.writer;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.logging.log4j.util.Strings;
 
 
 /**
@@ -13,9 +16,12 @@ import java.util.Map;
  */
 public interface SpreadsheetWriter {
 
+    //
+    // Add Sheet :: Beans
+
     /**
-     * This method will attempt to add a new sheet and add the beans a rows of data. To write the data to a file, call
-     * {@link #write(String)} method once the data addition is completed.
+     * Add a new sheet and add the beans a rows of data. To write the data to a file, call {@link #write(String)} method
+     * once the data addition is completed.
      * 
      * <br/>
      * <b>Sheet Name</b> : default sheet name will be used
@@ -31,8 +37,8 @@ public interface SpreadsheetWriter {
     }
 
     /**
-     * This method will attempt to add a new sheet and add the beans a rows of data. To write the data to a file, call
-     * {@link #write(String)} method once the data addition is completed.
+     * Add a new sheet and add the beans a rows of data. To write the data to a file, call {@link #write(String)} method
+     * once the data addition is completed.
      * 
      * <br/>
      * <b>Headers</b> : all possible properties as defined by the Type will be used as headers
@@ -46,8 +52,8 @@ public interface SpreadsheetWriter {
     }
 
     /**
-     * This method will attempt to add a new sheet and add the beans a rows of data. To write the data to a file, call
-     * {@link #write(String)} method once the data addition is completed.
+     * Add a new sheet and add the beans a rows of data. To write the data to a file, call {@link #write(String)} method
+     * once the data addition is completed.
      * 
      * <br/>
      * <b>Sheet Name</b> : default sheet name will be used
@@ -61,9 +67,10 @@ public interface SpreadsheetWriter {
         this.addSheet(beanClz, beans, null, headers);
     }
 
+
     /**
-     * This method will attempt to add a new sheet and add the beans a rows of data. To write the data to a file, call
-     * {@link #write(String)} method once the data addition is completed.
+     * Add a new sheet and add the beans a rows of data. To write the data to a file, call {@link #write(String)} method
+     * once the data addition is completed.
      * 
      * @param beanClz The Class type to serialize the rows data
      * @param beans List of Data beans of the parameterized type
@@ -74,19 +81,33 @@ public interface SpreadsheetWriter {
     <T> void addSheet(Class<T> beanClz, List<T> beans, String sheetName, List<String> headers);
 
 
-    /**
-     * This method will attempt to add a new sheet and add the rows of data from the rows data. The
-     * <code>null</code> entry in the rows data list will be skipped and no rows will be added to the
-     * sheet.
-     * 
-     * @param sheetName Name of the Sheet. (set it to <code>null</code> for default name)
-     * @param headers a {@link List} of Header names to write in the file. <code>null</code> or empty
-     *        list will default to all writable properties.
-     * @param rowsData List of Map, representing the sheet data. Each Map represents the row data where
-     *        the map elements stores a value for a header as key.
-     */
-    void addSheet(String sheetName, List<String> headers, List<Map<String, String>> rowsData);
+    //
+    // Add Sheet :: Map<String, Object>
 
+    /**
+     * Add a new sheet and add the rows of data defined by a {@link Map}. The <code>null</code> entry in the rows data
+     * list will be skipped and no rows will be added to the sheet.
+     * 
+     * @param rowsData List of Rows defined by a {@link Map}s where the map key is header and value is the row value
+     * @param headers a {@link List} of Header names to write in the file
+     */
+    default void addSheet(List<Map<String, Object>> rowsData, List<String> headers) {
+        this.addSheet(rowsData, null, headers);
+    }
+
+    /**
+     * Add a new sheet and add the rows of data defined by a {@link Map}. The <code>null</code> entry in the rows data
+     * list will be skipped and no rows will be added to the sheet.
+     * 
+     * @param rowsData List of Rows defined by a {@link Map}s where the map key is header and value is the row value
+     * @param sheetName Name of the Sheet. (set it to <code>null</code> for default name)
+     * @param headers a {@link List} of Header names to write in the file
+     */
+    void addSheet(List<Map<String, Object>> rowsData, String sheetName, List<String> headers);
+
+
+    //
+    // Write
 
     /**
      * Writes the current Spreadsheet workbook to a file in the specified path.
@@ -95,6 +116,23 @@ public interface SpreadsheetWriter {
      * 
      * @throws IOException if the filepath is not writable.
      */
-    void write(String filepath) throws IOException;
+    default void write(final String filepath) throws IOException {
+        // Sanity checks
+        if (Strings.isBlank(filepath)) {
+            throw new IllegalArgumentException("#write :: Input File Path is BLANK");
+        }
+
+        this.write(new File(filepath));
+    }
+
+    /**
+     * Writes the current Spreadsheet workbook to a file
+     * 
+     * @param fiel output file
+     * 
+     * @throws IOException if the file is not writable.
+     */
+    void write(File file) throws IOException;
+
 
 }

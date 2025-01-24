@@ -163,7 +163,7 @@ public class XlsxReaderTest {
 
         // Read
         final XlsxReader reader = new XlsxReader();
-        reader.read(Employee.class, xlsxFile, new RowListener<>() {
+        reader.read(Employee.class, xlsxFile, new RowListener<Employee>() {
 
             @Override
             public void row(int rowNum, Employee employee) {
