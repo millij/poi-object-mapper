@@ -128,7 +128,7 @@ public interface SpreadsheetWriter {
     /**
      * Writes the current Spreadsheet workbook to a file
      * 
-     * @param fiel output file
+     * @param file output file
      * 
      * @throws IOException if the file is not writable.
      */

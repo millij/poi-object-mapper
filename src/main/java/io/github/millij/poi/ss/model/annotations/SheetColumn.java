@@ -40,16 +40,16 @@ public @interface SheetColumn {
 
 
     /**
-     * Data presentation format of the Data cell.
+     * Data presentation format of the Data Column.
      * 
      * @return Data format String.
      */
     String format() default "";
 
     /**
-     * DateTime Type
+     * DateTimeType value of the Column
      * 
-     * @return
+     * @return the {@link DateTimeType} value of the Column
      */
     DateTimeType datetime() default DateTimeType.NONE;
 

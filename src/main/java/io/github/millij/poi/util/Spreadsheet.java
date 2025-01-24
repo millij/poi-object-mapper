@@ -336,6 +336,8 @@ public final class Spreadsheet {
     /**
      * Normalize the string. typically used for case-insensitive comparison.
      * 
+     * @param inStr input string
+     * 
      * @deprecated in favor of {@link Strings#normalize(String)}
      */
     @Deprecated
