@@ -2,6 +2,7 @@ package io.github.millij.poi.ss.writer;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -71,6 +72,20 @@ public interface SpreadsheetWriter {
      *        to all writable properties.
      */
     <T> void addSheet(Class<T> beanClz, List<T> beans, String sheetName, List<String> headers);
+
+
+    /**
+     * This method will attempt to add a new sheet and add the rows of data from the rows data. The
+     * <code>null</code> entry in the rows data list will be skipped and no rows will be added to the
+     * sheet.
+     * 
+     * @param sheetName Name of the Sheet. (set it to <code>null</code> for default name)
+     * @param headers a {@link List} of Header names to write in the file. <code>null</code> or empty
+     *        list will default to all writable properties.
+     * @param rowsData List of Map, representing the sheet data. Each Map represents the row data where
+     *        the map elements stores a value for a header as key.
+     */
+    void addSheet(String sheetName, List<String> headers, List<Map<String, String>> rowsData);
 
 
     /**
