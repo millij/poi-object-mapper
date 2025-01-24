@@ -210,7 +210,7 @@ public final class Beans {
     private static void setDateTimeProperty(final Object target, final String propName, final Class<?> propType,
             final Object propValue, final String format, final DateTimeType dateTimeType) throws Exception {
         // Input value Format
-        final String dateFormatStr = Objects.isNull(format) || format.isBlank() ? "dd/MM/yyyy" : format;
+        final String dateFormatStr = Strings.isBlank(format) ? "dd/MM/yyyy" : format;
 
         // Parse
         final SimpleDateFormat dateFmt = new SimpleDateFormat(dateFormatStr);

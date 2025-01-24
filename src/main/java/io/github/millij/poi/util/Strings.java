@@ -52,4 +52,17 @@ public final class Strings {
     }
 
 
+    // Checks
+
+    /**
+     * Check if a String is <code>null</code> or contains only white spaces
+     * 
+     * @param str input string
+     * 
+     * @return <code>true</code> if the input String is blank
+     */
+    public static boolean isBlank(final String str) {
+        return Objects.isNull(str) || str.trim().isEmpty();
+    }
+
 }

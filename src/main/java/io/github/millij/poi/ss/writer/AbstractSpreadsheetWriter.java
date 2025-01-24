@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import io.github.millij.poi.ss.model.Column;
 import io.github.millij.poi.util.Spreadsheet;
+import io.github.millij.poi.util.Strings;
 
 
 /**
@@ -77,7 +78,7 @@ abstract class AbstractSpreadsheetWriter implements SpreadsheetWriter {
             }
 
             // Create sheet
-            final Sheet sheet = Objects.isNull(sheetName) || sheetName.isBlank() //
+            final Sheet sheet = Strings.isBlank(sheetName) //
                     ? workbook.createSheet() //
                     : workbook.createSheet(sheetName);
             LOGGER.debug("Added new Sheet[name] to the workbook : {}", sheet.getSheetName());
@@ -128,7 +129,7 @@ abstract class AbstractSpreadsheetWriter implements SpreadsheetWriter {
             }
 
             // Create sheet
-            final Sheet sheet = Objects.isNull(inSheetName) || inSheetName.isBlank() //
+            final Sheet sheet = Strings.isBlank(inSheetName) //
                     ? workbook.createSheet() //
                     : workbook.createSheet(inSheetName);
             LOGGER.debug("Added new Sheet[name] to the workbook : {}", sheet.getSheetName());
