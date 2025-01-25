@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import io.github.millij.poi.ss.model.Column;
 import io.github.millij.poi.util.Spreadsheet;
+import io.github.millij.poi.util.Strings;
 
 
 /**
@@ -51,14 +52,14 @@ abstract class AbstractSpreadsheetWriter implements SpreadsheetWriter {
     // ------------------------------------------------------------------------
 
 
-    // Sheet :: Add
+    // Sheet :: Bean
 
     @Override
     public <T> void addSheet(final Class<T> beanType, final List<T> rowObjects, final String inSheetName,
             final List<String> inHeaders) {
         // Sanity checks
         if (Objects.isNull(beanType)) {
-            throw new IllegalArgumentException("AbstractSpreadsheetWriter :: Bean Type is NULL");
+            throw new IllegalArgumentException("#addSheet :: Bean Type is NULL");
         }
 
         // Sheet config
@@ -77,7 +78,7 @@ abstract class AbstractSpreadsheetWriter implements SpreadsheetWriter {
             }
 
             // Create sheet
-            final Sheet sheet = Objects.isNull(sheetName) || sheetName.isBlank() //
+            final Sheet sheet = Strings.isBlank(sheetName) //
                     ? workbook.createSheet() //
                     : workbook.createSheet(sheetName);
             LOGGER.debug("Added new Sheet[name] to the workbook : {}", sheet.getSheetName());
@@ -110,18 +111,79 @@ abstract class AbstractSpreadsheetWriter implements SpreadsheetWriter {
     }
 
 
-    // Sheet :: Append to existing
+    // Sheet :: Map<String, Object>
+
+    @Override
+    public void addSheet(final List<Map<String, Object>> rowsData, final String inSheetName,
+            final List<String> inHeaders) {
+        // Sanity check
+        if (Objects.isNull(rowsData)) {
+            throw new IllegalArgumentException("#addSheet :: Rows data map is NULL");
+        }
+        if (Objects.isNull(inHeaders) || inHeaders.isEmpty()) {
+            throw new IllegalArgumentException("#addSheet :: Headers list is NULL or EMPTY");
+        }
+
+        try {
+            final Sheet exSheet = workbook.getSheet(inSheetName);
+            if (Objects.nonNull(exSheet)) {
+                String errMsg = String.format("A Sheet with the passed name already exists : %s", inSheetName);
+                throw new IllegalArgumentException(errMsg);
+            }
+
+            // Create sheet
+            final Sheet sheet = Strings.isBlank(inSheetName) //
+                    ? workbook.createSheet() //
+                    : workbook.createSheet(inSheetName);
+            LOGGER.debug("Added new Sheet[name] to the workbook : {}", sheet.getSheetName());
+
+            // Header
+            final Row headerRow = sheet.createRow(0);
+            for (int cellNum = 0; cellNum < inHeaders.size(); cellNum++) {
+                final Cell cell = headerRow.createCell(cellNum);
+                cell.setCellValue(inHeaders.get(cellNum));
+            }
+
+            // Data Rows
+            for (int i = 0, rowNum = 1; i < rowsData.size(); i++, rowNum++) {
+                final Row row = sheet.createRow(rowNum);
+                final Map<String, Object> rowData = rowsData.get(i);
+                if (Objects.isNull(rowData) || rowData.isEmpty()) {
+                    continue; // Skip if row is null
+                }
+
+                for (int cellNum = 0; cellNum < inHeaders.size(); cellNum++) {
+                    final String key = inHeaders.get(cellNum);
+                    final Object value = rowData.get(key);
+
+                    final Cell cell = row.createCell(cellNum);
+                    if (Objects.nonNull(value)) {
+                        cell.setCellValue(String.valueOf(value));
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            String errMsg = String.format("Error while preparing sheet with passed row objects : %s", ex.getMessage());
+            LOGGER.error(errMsg, ex);
+        }
+    }
 
 
     // Write
 
     @Override
-    public void write(final String filepath) throws IOException {
-        try (final OutputStream outputStrem = new FileOutputStream(new File(filepath))) {
+    public void write(final File file) throws IOException {
+        // Sanity checks
+        if (Objects.isNull(file)) {
+            throw new IllegalArgumentException("#write :: Input File object is NULL");
+        }
+
+        try (final OutputStream outputStrem = new FileOutputStream(file)) {
             workbook.write(outputStrem);
             workbook.close();
+
         } catch (Exception ex) {
-            final String errMsg = String.format("Failed to write workbook data to file : %s", filepath);
+            final String errMsg = String.format("Failed to write workbook data to file : %s", file.getPath());
             LOGGER.error(errMsg);
             throw ex;
         }

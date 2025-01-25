@@ -67,7 +67,7 @@ public final class Spreadsheet {
     public static String getSheetColumnName(final SheetColumn sheetColumn, final String defaultName) {
         // Name
         final String scValue = sheetColumn.value();
-        final String colName = Objects.isNull(scValue) || scValue.isBlank() ? defaultName : scValue;
+        final String colName = Strings.isBlank(scValue) ? defaultName : scValue;
 
         return colName;
     }
@@ -216,7 +216,7 @@ public final class Spreadsheet {
             for (final String propColName : headerCellRefsMap.keySet()) {
                 // Get the Header Cell Ref
                 final String propCellRef = headerCellRefsMap.get(propColName);
-                if (Objects.isNull(propCellRef) || propCellRef.isBlank()) {
+                if (Strings.isBlank(propCellRef)) {
                     continue;
                 }
 
@@ -263,7 +263,7 @@ public final class Spreadsheet {
                 // Get the Header Cell Ref
                 final String normalizedColName = Strings.normalize(propColName);
                 final String propCellRef = headerCellRefsMap.get(normalizedColName);
-                if (Objects.isNull(propCellRef) || propCellRef.isBlank()) {
+                if (Strings.isBlank(propCellRef)) {
                     LOGGER.debug("{} :: No Cell Ref found [Prop - Col] : [{} - {}]", beanClz, propName, propColName);
                     continue;
                 }
@@ -310,7 +310,7 @@ public final class Spreadsheet {
             final String propCellRef = headerCellRefsMap.containsKey(propColName) //
                     ? headerCellRefsMap.get(propColName) //
                     : headerCellRefsMap.get(normalizedColName);
-            if (Objects.isNull(propCellRef) || propCellRef.isBlank()) {
+            if (Strings.isBlank(propCellRef)) {
                 continue;
             }
 
@@ -335,6 +335,8 @@ public final class Spreadsheet {
 
     /**
      * Normalize the string. typically used for case-insensitive comparison.
+     * 
+     * @param inStr input string
      * 
      * @deprecated in favor of {@link Strings#normalize(String)}
      */

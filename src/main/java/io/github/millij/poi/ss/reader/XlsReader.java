@@ -179,7 +179,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
             }
 
             final Map<String, Object> rowDataMap = this.extractRowDataAsMap(row);
-            if (rowDataMap == null || rowDataMap.isEmpty()) {
+            if (Objects.isNull(rowDataMap) || rowDataMap.isEmpty()) {
                 continue;
             }
 
@@ -209,7 +209,7 @@ public class XlsReader extends AbstractSpreadsheetReader {
             }
 
             final Map<String, Object> rowDataMap = this.extractRowDataAsMap(row);
-            if (rowDataMap == null || rowDataMap.isEmpty()) {
+            if (Objects.isNull(rowDataMap) || rowDataMap.isEmpty()) {
                 continue;
             }
 
