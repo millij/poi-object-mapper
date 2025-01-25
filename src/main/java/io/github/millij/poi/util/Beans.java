@@ -122,6 +122,14 @@ public final class Beans {
     // ------------------------------------------------------------------------
 
     /**
+     * Set a property value of an object.
+     * 
+     * @param target Target Object
+     * @param propName name of the Object Property
+     * @param propType type of the Object Property
+     * @param propValue Value of the property to be set
+     * 
+     * @throws Exception exceptions when invoking the accessor methods
      */
     public static void setProperty(final Object target, final String propName, final Class<?> propType,
             final Object propValue) throws Exception {
@@ -130,30 +138,34 @@ public final class Beans {
             return; // Skip Setter if property value is NULL
         }
 
-        try {
-            // Convert the specified value to the required type
-            final Object newValue;
-            if (propValue instanceof String) {
-                newValue = CONVERT_UTILS_BEAN.convert((String) propValue, propType);
+        // Convert the specified value to the required type
+        final Object newValue;
+        if (propValue instanceof String) {
+            newValue = CONVERT_UTILS_BEAN.convert((String) propValue, propType);
+        } else {
+            final Converter converter = CONVERT_UTILS_BEAN.lookup(propType);
+            if (converter != null) {
+                newValue = converter.convert(propType, propValue);
             } else {
-                final Converter converter = CONVERT_UTILS_BEAN.lookup(propType);
-                if (converter != null) {
-                    newValue = converter.convert(propType, propValue);
-                } else {
-                    newValue = propValue;
-                }
+                newValue = propValue;
             }
-
-            // Invoke the setter method
-            PROP_UTILS_BEAN.setProperty(target, propName, newValue);
-
-        } catch (Exception ex) {
-            //
         }
+
+        // Invoke the setter method
+        PROP_UTILS_BEAN.setProperty(target, propName, newValue);
     }
 
 
     /**
+     * Set a property value of an object.
+     * 
+     * @param target Target Object
+     * @param propName name of the Object Property
+     * @param propValue Value of the property to be set
+     * @param format Value format
+     * @param dateTimeType {@link DateTimeType} value for Date/Time properties
+     * 
+     * @throws Exception exceptions when invoking the accessor methods
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static void setProperty(final Object target, final String propName, final Object propValue,
@@ -206,11 +218,20 @@ public final class Beans {
 
     /**
      * Set the Date/Time property of the Target Bean.
+     * 
+     * @param target Target Object
+     * @param propName name of the Object Property
+     * @param propType type of the Object Property
+     * @param propValue Value of the property to be set
+     * @param format Value format
+     * @param dateTimeType {@link DateTimeType} value for Date/Time properties
+     * 
+     * @throws Exception exceptions when invoking the accessor methods
      */
     private static void setDateTimeProperty(final Object target, final String propName, final Class<?> propType,
             final Object propValue, final String format, final DateTimeType dateTimeType) throws Exception {
         // Input value Format
-        final String dateFormatStr = Objects.isNull(format) || format.isBlank() ? "dd/MM/yyyy" : format;
+        final String dateFormatStr = Strings.isBlank(format) ? "dd/MM/yyyy" : format;
 
         // Parse
         final SimpleDateFormat dateFmt = new SimpleDateFormat(dateFormatStr);

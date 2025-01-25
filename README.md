@@ -5,9 +5,9 @@
 
 # poi-object-mapper
 
-**poi-object-mapper** is a wrapper java library for [Apache POI](https://poi.apache.org/) (Apache POI provides java API to read Microsoft Office Formats). POI APIs are very low level giving acess to all the internals of the file formats.
+**poi-object-mapper** is a wrapper java library for [Apache POI](https://poi.apache.org/) (Apache POI provides java API to read Microsoft Office Formats). POI APIs are very low level giving access to all the internals of the file formats.
 
-The aim of this project is to provide easy to use highlevel APIs to read the Office file formats by wrapping the POI APIs. In simple terms, the wrapper APIs would look similar to the [Jackson Project for XML and JSON](https://github.com/FasterXML/jackson), where the data can be mapped to a JAVA Bean and through the mapper APIs, the file data can directly be read as java objects.
+The aim of this project is to provide easy to use high-level APIs to read the Office file formats by wrapping the POI APIs. In simple terms, the wrapper APIs would look similar to the [Jackson Project for XML and JSON](https://github.com/FasterXML/jackson), where the data can be mapped to a JAVA Bean and through the mapper APIs, the file data can directly be read as java objects.
 
 *- Note that the current version of the library supports only  **spreadsheets**  (Excel files).*
 
@@ -22,7 +22,7 @@ This library is available in [Maven Central](https://mvnrepository.com/artifact/
 <dependency>
     <groupId>io.github.millij</groupId>
     <artifactId>poi-object-mapper</artifactId>
-    <version>3.1.0</version>
+    <version>3.2.0</version>
 </dependency>
 ```
 
@@ -95,7 +95,7 @@ Reading spreadsheet rows as `Map<String, Object>` Objects ..
 ```
 
 
-##### Writing a collection of objects to file
+##### Writing a List of objects to file
 
 Similar to `Reader`, the mapped Java Beans can be written to files.
 
@@ -116,7 +116,43 @@ Use `XlsWriter` for `.xls` files and `XlsxWriter` for `.xlsx` files.
     ...
 ```
 
-## Implementation Details
+##### Writing a List of objects defined as Map to file
+
+Similar to `Reader`, the `Writer` also supports Row data defined as `Map<String, Object>`. 
+This is to support the data that is not backed by a concrete bean Class definition
+
+Use `XlsWriter` for `.xls` files and `XlsxWriter` for `.xlsx` files.
+
+```java
+    ...
+    // Employees
+    final Map<String, Object> emp1 = new HashMap<>();
+    emp1.put("Name", "foo");
+    emp1.put("Age", 12);
+    emp1.put("Gender", "MALE");
+    emp1.put("Height (mts)", 1.68);
+
+    final Map<String, Object> emp2 = new HashMap<>();
+    emp1.put("Name", "bar");
+    emp1.put("Age", null);
+    emp1.put("Gender", "MALE");
+
+    final List<Map<String, Object>> employees = Arrays.asList(emp1, emp2);
+
+    // Headers (or Column Names)
+    final List<String> headers = new ArrayList<>();
+    headers.add("Name");
+    headers.add("Age");
+    headers.add("Gender");
+    headers.add("Height (mts)");
+    headers.add("Address");
+
+    // Writer
+    final SpreadsheetWriter writer = new XlsxWriter();
+    writer.addSheet(employees, headers);
+    writer.write("<output_file_path>");
+
+```
 
 
 
