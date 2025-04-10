@@ -1,9 +1,12 @@
 package io.github.millij.poi.ss.writer;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.logging.log4j.util.Strings;
 
@@ -110,6 +113,33 @@ public interface SpreadsheetWriter {
     // Write
 
     /**
+     * Writes the current Spreadsheet workbook to an OutputStream
+     * 
+     * @param outputStream output stream
+     * 
+     * @throws IOException if the stream is not writable.
+     */
+    void write(OutputStream outputStream) throws IOException;
+
+    /**
+     * Writes the current Spreadsheet workbook to a file
+     * 
+     * @param file output file
+     * 
+     * @throws IOException if the file is not writable.
+     */
+    default void write(final File file) throws IOException {
+        // Sanity checks
+        if (Objects.isNull(file)) {
+            throw new IllegalArgumentException("#write :: Input File object is NULL");
+        }
+
+        // OutputStream
+        final OutputStream outputStream = new FileOutputStream(file);
+        this.write(outputStream);
+    }
+
+    /**
      * Writes the current Spreadsheet workbook to a file in the specified path.
      * 
      * @param filepath output filepath (including filename).
@@ -122,17 +152,10 @@ public interface SpreadsheetWriter {
             throw new IllegalArgumentException("#write :: Input File Path is BLANK");
         }
 
-        this.write(new File(filepath));
+        // OutputStream
+        final OutputStream outputStream = new FileOutputStream(filepath);
+        this.write(outputStream);
     }
-
-    /**
-     * Writes the current Spreadsheet workbook to a file
-     * 
-     * @param file output file
-     * 
-     * @throws IOException if the file is not writable.
-     */
-    void write(File file) throws IOException;
 
 
 }

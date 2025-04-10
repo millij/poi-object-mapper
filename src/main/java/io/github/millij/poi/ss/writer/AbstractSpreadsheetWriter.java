@@ -1,7 +1,5 @@
 package io.github.millij.poi.ss.writer;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -172,21 +170,9 @@ abstract class AbstractSpreadsheetWriter implements SpreadsheetWriter {
     // Write
 
     @Override
-    public void write(final File file) throws IOException {
-        // Sanity checks
-        if (Objects.isNull(file)) {
-            throw new IllegalArgumentException("#write :: Input File object is NULL");
-        }
-
-        try (final OutputStream outputStrem = new FileOutputStream(file)) {
-            workbook.write(outputStrem);
-            workbook.close();
-
-        } catch (Exception ex) {
-            final String errMsg = String.format("Failed to write workbook data to file : %s", file.getPath());
-            LOGGER.error(errMsg);
-            throw ex;
-        }
+    public void write(final OutputStream outputStrem) throws IOException {
+        workbook.write(outputStrem);
+        workbook.close();
     }
 
 
