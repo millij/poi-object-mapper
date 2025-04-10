@@ -22,7 +22,7 @@ This library is available in [Maven Central](https://mvnrepository.com/artifact/
 <dependency>
     <groupId>io.github.millij</groupId>
     <artifactId>poi-object-mapper</artifactId>
-    <version>3.2.0</version>
+    <version>3.2.1</version>
 </dependency>
 ```
 
